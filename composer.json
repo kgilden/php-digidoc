@@ -1,0 +1,24 @@
+{
+    "name"        : "kgilden/php-digidoc",
+    "description" : "A library for signing & verifying documents using estonian id card",
+    "homepage"    : "https://github.com/kgilden/php-digidoc",
+    "license"     : "MIT",
+    "type"        : "library",
+    "keywords"    : ["digidoc", "id-card"],
+    "authors": [
+        {
+            "name"  : "Kristen Gilden",
+            "email" : "kristen.gilden@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.8",
+        "ext-soap": "*"
+    },
+    "require-dev": {
+
+    },
+    "autoload": {
+        "psr-4": { "KG\\DigiDoc\\": "src/" }
+    }
+}
