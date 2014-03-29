@@ -16,7 +16,7 @@
         "ext-soap": "*"
     },
     "require-dev": {
-
+        "wsdl2phpgenerator/wsdl2phpgenerator": "~2.3"
     },
     "autoload": {
         "psr-4": { "KG\\DigiDoc\\": "src/" }
