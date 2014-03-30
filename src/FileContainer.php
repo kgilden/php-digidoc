@@ -58,4 +58,14 @@ class FileContainer
 
         return base64_encode($content);
     }
+
+    /**
+     * Makes it possible to use regular file operations (e.g. file_exists).
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->container->getPathname();
+    }
 }

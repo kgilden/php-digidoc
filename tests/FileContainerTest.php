@@ -43,6 +43,27 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testContainerCompatibleWithFileFunctions()
+    {
+        file_put_contents(
+            $fileName = tempnam(sys_get_temp_dir(), 'digidoctest'),
+            $content = "Hello, world!"
+        );
+
+        try {
+            $container = new FileContainer($fileName);
+
+            $this->assertTrue(file_exists($container));
+
+            unlink($fileName);
+        } catch (\Exception $e) {
+            // Cleanup just in case.
+            unlink($fileName);
+
+            throw $e;
+        }
+    }
+
     /**
      * @expectedException KG\DigiDoc\Exception\RuntimeException
      */
