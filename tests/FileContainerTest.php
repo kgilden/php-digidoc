@@ -20,27 +20,7 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructFailsIfNotString()
     {
-        $container = new FileContainer(false);
-    }
-
-    public function testToBase64EncodesEntireContainer()
-    {
-        file_put_contents(
-            $fileName = tempnam(sys_get_temp_dir(), 'digidoctest'),
-            $content = "Hello, world!"
-        );
-
-        try {
-            $container = new FileContainer($fileName);
-
-            $this->assertEquals(base64_encode($content), $container->toBase64());
-            unlink($fileName);
-        } catch (\Exception $e) {
-            // Cleanup just in case.
-            unlink($fileName);
-
-            throw $e;
-        }
+        $container = new FileContainer($this->getMockApi(), false);
     }
 
     public function testContainerCompatibleWithFileFunctions()
@@ -51,7 +31,7 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         );
 
         try {
-            $container = new FileContainer($fileName);
+            $container = new FileContainer($this->getMockApi(), $fileName);
 
             $this->assertTrue(file_exists($container));
 
@@ -65,11 +45,14 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException KG\DigiDoc\Exception\RuntimeException
+     * @return \KG\DigiDoc\Api|PHPUnit_Framework_MockObject_MockObject
      */
-    public function testToBase64FailsIfFileNotExists()
+    private function getMockApi()
     {
-        $container = new FileContainer('foo/baz');
-        $container->toBase64();
+        return $this
+            ->getMockBuilder('KG\DigiDoc\Api')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
     }
 }

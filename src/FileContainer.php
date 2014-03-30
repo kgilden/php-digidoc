@@ -45,7 +45,7 @@ class FileContainer
      *
      * @return string
      */
-    public function toBase64()
+    private function toBase64()
     {
         $level = error_reporting(0);
         $content = file_get_contents($this->container->getPathname());
