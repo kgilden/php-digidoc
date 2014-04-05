@@ -20,14 +20,25 @@ use KG\DigiDoc\Exception\UnexpectedTypeException;
 class FileContainer
 {
     /**
+     * @var Api
+     */
+    private $api;
+
+    /**
      * @var \SplFileInfo
      */
     private $container;
 
     /**
+     * @var Session
+     */
+    private $session;
+
+    /**
+     * @param Api                 $api  The api for modifying this container
      * @param \SplFileInfo|string $file The file or its path
      */
-    public function __construct($file)
+    public function __construct(Api $api, $file)
     {
         if (is_string($file)) {
             $file = new \SplFileInfo($file);
@@ -37,6 +48,7 @@ class FileContainer
             throw new UnexpectedTypeException('\SplFileInfo" or "string', $file);
         }
 
+        $this->api = $api;
         $this->container = $file;
     }
 
@@ -67,5 +79,17 @@ class FileContainer
     public function __toString()
     {
         return $this->container->getPathname();
+    }
+
+    /**
+     * @return Session
+     */
+    protected function getSession()
+    {
+        if (!$this->session) {
+            $this->session = $this->api->openSession($this->toBase64());
+        }
+
+        return $this->session;
     }
 }
