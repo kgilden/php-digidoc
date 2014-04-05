@@ -35,7 +35,7 @@ class Certificate
     public function __construct($id, $certificate)
     {
         $this->id = $id;
-        $this->certificate;
+        $this->certificate = $certificate;
     }
 
     /**
