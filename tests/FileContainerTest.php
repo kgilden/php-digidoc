@@ -16,6 +16,11 @@ use KG\DigiDoc\FileContainer;
 class FileContainerTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * @var string[]
+     */
+    protected $filePaths;
+
+    /**
      * @expectedException KG\DigiDoc\Exception\UnexpectedTypeException
      */
     public function testConstructFailsIfNotString()
@@ -25,23 +30,43 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
 
     public function testContainerCompatibleWithFileFunctions()
     {
-        file_put_contents(
-            $fileName = tempnam(sys_get_temp_dir(), 'digidoctest'),
-            $content = "Hello, world!"
+        $container = new FileContainer(
+            $this->getMockApi(),
+            $this->createFileWithContent('Hello, world!')
         );
 
-        try {
-            $container = new FileContainer($this->getMockApi(), $fileName);
+        $this->assertTrue(file_exists($container));
+    }
 
-            $this->assertTrue(file_exists($container));
+    protected function setUp()
+    {
+        $this->filePaths = array();
+    }
 
-            unlink($fileName);
-        } catch (\Exception $e) {
-            // Cleanup just in case.
-            unlink($fileName);
-
-            throw $e;
+    protected function tearDown()
+    {
+        foreach ($this->filePaths as $filePath) {
+            unlink($filePath);
         }
+    }
+
+    /**
+     * Creates a temporary file with the given content.
+     *
+     * @param string $content
+     *
+     * @return string Path to the file
+     */
+    private function createFileWithContent($content = '')
+    {
+        file_put_contents(
+            $filePath = tempnam(sys_get_temp_dir(), 'digidoc_test_'),
+            $content
+        );
+
+        $this->filePaths[] = $filePath;
+
+        return $filePath;
     }
 
     /**
