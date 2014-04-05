@@ -35,12 +35,14 @@ class Api
      *
      * @todo Handle exceptions
      *
+     * @param string $content
+     *
      * @return Session
      */
-    public function openSession()
+    public function openSession($content = '')
     {
         list($status, $sessionId) = array_values(
-            $this->client->__soapCall('StartSession', array('', '', true, ''))
+            $this->client->__soapCall('StartSession', array('', $content, true, ''))
         );
 
         return new Session($sessionId);
