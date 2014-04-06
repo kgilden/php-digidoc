@@ -29,13 +29,25 @@ class Signature
     private $challenge;
 
     /**
-     * @param Api    $api
-     * @param string $id        Signature id
-     * @param string $challenge A solvable challenge to seal this signature
+     * @var boolean
      */
-    public function __construct(Api $api, $id, $challenge)
+    private $sealed = false;
+
+    /**
+     * @var Session
+     */
+    private $session;
+
+    /**
+     * @param Api     $api
+     * @param Session $session
+     * @param string  $id        Signature id
+     * @param string  $challenge A solvable challenge to seal this signature
+     */
+    public function __construct(Api $api, Session $session, $id, $challenge)
     {
         $this->api = $api;
+        $this->session = $session;
         $this->id = $id;
         $this->challenge = $challenge;
     }
@@ -56,5 +68,23 @@ class Signature
     public function getChallenge()
     {
         return $this->challenge;
+    }
+
+    /**
+     * Seals the signature, effectively making the signature valid.
+     *
+     * @param string $solution
+     */
+    public function seal($solution)
+    {
+        return $this->sealed = $this->api->finishSignature($this->session, $this, $solution);
+    }
+
+    /**
+     * @return boolean Whether the current signature is sealed
+     */
+    public function isSealed()
+    {
+        return $this->sealed;
     }
 }

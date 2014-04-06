@@ -38,6 +38,26 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(file_exists($container));
     }
 
+    public function testCreateSignatureDelegatesCallToApi()
+    {
+        $api = $this->getMockApi();
+        $this->mockOpenSession($api, $session = $this->getMockSession());
+
+        $certificate = $this->getMockCertificate();
+
+        $api
+            ->expects($this->once())
+            ->method('createSignature')
+            ->with($session, $certificate)
+            ->will($this->returnValue($expectedSignature = 'foo'))
+        ;
+
+        $container = new FileContainer($api, $this->createFileWithContent('fubar'));
+        $signature = $container->createSignature($certificate);
+
+        $this->assertSame($expectedSignature, $signature);
+    }
+
     protected function setUp()
     {
         $this->filePaths = array();
@@ -78,6 +98,43 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
             ->getMockBuilder('KG\DigiDoc\Api')
             ->disableOriginalConstructor()
             ->getMock()
+        ;
+    }
+
+    /**
+     * @return \KG\DigiDoc\Certificate|PHPUnit_Framework_MockObject_MockObject
+     */
+    private function getMockCertificate()
+    {
+        return $this
+            ->getMockBuilder('KG\DigiDoc\Certificate')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+    }
+
+    /**
+     * @return \KG\DigiDoc\Session|PHPUnit_Framework_MockObject_MockObject
+     */
+    private function getMockSession()
+    {
+        return $this
+            ->getMockBuilder('KG\DigiDoc\Session')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+    }
+
+    /**
+     * @param \PHPUnit_Framework_MockObject_MockObject $mock
+     * @param \KG\DigiDoc\Session                      $session
+     */
+    private function mockOpenSession(\PHPUnit_Framework_MockObject_MockObject $mock, $session)
+    {
+        $mock
+            ->expects($this->once())
+            ->method('openSession')
+            ->will($this->returnValue($session))
         ;
     }
 }

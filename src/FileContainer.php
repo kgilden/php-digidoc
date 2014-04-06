@@ -72,6 +72,21 @@ class FileContainer
     }
 
     /**
+     * Creates a new unsealed signature for this container. NB! You must "seal"
+     * the signature to make it count.
+     *
+     * @todo Refer to Signature sealing
+     *
+     * @param Certificate $certificate
+     *
+     * @return Signature
+     */
+    public function createSignature(Certificate $certificate)
+    {
+        return $this->api->createSignature($this->getSession(), $certificate);
+    }
+
+    /**
      * Makes it possible to use regular file operations (e.g. file_exists).
      *
      * @return string
