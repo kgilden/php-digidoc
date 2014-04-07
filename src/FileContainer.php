@@ -53,25 +53,6 @@ class FileContainer
     }
 
     /**
-     * Encodes the container to base 64.
-     *
-     * @return string
-     */
-    private function toBase64()
-    {
-        $level = error_reporting(0);
-        $content = file_get_contents($this->container->getPathname());
-        error_reporting($level);
-
-        if (false === $content) {
-            $error = error_get_last();
-            throw new RuntimeException($error['message']);
-        }
-
-        return base64_encode($content);
-    }
-
-    /**
      * Creates a new unsealed signature for this container. NB! You must "seal"
      * the signature to make it count.
      *
@@ -106,5 +87,24 @@ class FileContainer
         }
 
         return $this->session;
+    }
+
+    /**
+     * Encodes the container to base 64.
+     *
+     * @return string
+     */
+    private function toBase64()
+    {
+        $level = error_reporting(0);
+        $content = file_get_contents($this->container->getPathname());
+        error_reporting($level);
+
+        if (false === $content) {
+            $error = error_get_last();
+            throw new RuntimeException($error['message']);
+        }
+
+        return base64_encode($content);
     }
 }
