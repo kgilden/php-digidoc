@@ -99,7 +99,7 @@ class FileContainer
     protected function getSession()
     {
         if (!$this->isSessionStarted()) {
-            $this->session = $this->api->openSession($this->toBase64());
+            $this->session = $this->api->openSession($this->getContents());
         }
 
         return $this->session;
@@ -114,21 +114,21 @@ class FileContainer
     }
 
     /**
-     * Encodes the container to base 64.
+     * Gets the contents of the container.
      *
      * @return string
      */
-    private function toBase64()
+    private function getContents()
     {
         $level = error_reporting(0);
-        $content = file_get_contents($this->container->getPathname());
+        $contents = file_get_contents($this->container->getPathname());
         error_reporting($level);
 
-        if (false === $content) {
+        if (false === $contents) {
             $error = error_get_last();
             throw new RuntimeException($error['message']);
         }
 
-        return base64_encode($content);
+        return $contents;
     }
 }

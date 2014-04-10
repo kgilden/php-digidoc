@@ -42,7 +42,7 @@ class Api
     public function openSession($content = '')
     {
         list($status, $sessionId) = array_values(
-            $this->client->__soapCall('StartSession', array('', $content, true, ''))
+            $this->client->__soapCall('StartSession', array('', $this->base64Encode($content), true, ''))
         );
 
         return new Session($sessionId);
@@ -117,7 +117,7 @@ class Api
     {
         list(, $contents) = array_values($this->client->__soapCall('GetSignedDoc', array($session->getId())));
 
-        return $this->decodeBase64($contents);
+        return $this->base64Decode($contents);
     }
 
     /**
@@ -150,18 +150,31 @@ class Api
     }
 
     /**
-     * Decodes a piece of data from base64. The encoded data may be either
-     * a long string in base64 or delimited by newline characters.
+     * Base64 encodes a string. This is just for symmetry with base64Decode.
      *
-     * @param string $encoded
+     * @param string $data
      *
      * @return string
      */
-    private function decodeBase64($encoded)
+    private function base64Encode($data)
+    {
+        return base64_encode($data);
+    }
+
+
+    /**
+     * Decodes a piece of data from base64. The encoded data may be either
+     * a long string in base64 or delimited by newline characters.
+     *
+     * @param string $data The encoded data
+     *
+     * @return string
+     */
+    private function base64Decode($data)
     {
         $decoded    = '';
         $delimiters = "\n";
-        $token      = strtok($encoded, $delimiters);
+        $token      = strtok($data, $delimiters);
 
         while (false !== $token) {
             $decoded .= base64_decode($token);
