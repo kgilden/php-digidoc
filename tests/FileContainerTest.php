@@ -58,6 +58,41 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expectedSignature, $signature);
     }
 
+    public function testWriteSkippedIfNothingChanged()
+    {
+        $this->registerFilePath($filePath = sys_get_temp_dir().'/digidoc_test_write_skipped');
+
+        $this->assertFileNotExists($filePath);
+
+        $container = new FileContainer($this->getMockApi(), $filePath);
+        $container->write();
+
+        $this->assertFileNotExists($filePath);
+    }
+
+    public function testWriteStoresContentsFromApiOnDisk()
+    {
+        $filePath = $this->createTempFile('');
+
+        $api = $this->getMockApi();
+        $this->mockOpenSession($api, $this->getMockSession());
+
+        $api
+            ->expects($this->once())
+            ->method('getContents')
+            ->will($this->returnValue('foo'))
+        ;
+
+        $container = new FileContainer($api, $filePath);
+
+        // Do something, which should theoretically open up a session.
+        $container->createSignature($this->getMockCertificate());
+        $container->write();
+
+        $this->assertFileExists($filePath);
+        $this->assertEquals('foo', file_get_contents($filePath));
+    }
+
     protected function setUp()
     {
         $this->filePaths = array();
@@ -66,8 +101,39 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
     protected function tearDown()
     {
         foreach ($this->filePaths as $filePath) {
-            unlink($filePath);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
         }
+    }
+
+    /**
+     * Registers a file path to ease cleanup. All registered file paths will
+     * be removed from the disk after a test is run.
+     *
+     * @param string $filePath
+     *
+     * @return FileContainerTest
+     */
+    private function registerFilePath($filePath)
+    {
+        $this->filePaths[] = $filePath;
+
+        return $this;
+    }
+
+    /**
+     * Creates a temporary file.
+     *
+     * @return string Path to the file
+     */
+    private function createTempFile($filePath = null)
+    {
+        $filePath = tempnam(sys_get_temp_dir(), 'digidoc_test_');
+
+        $this->registerFilePath($filePath);
+
+        return $filePath;
     }
 
     /**
@@ -79,10 +145,7 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
      */
     private function createFileWithContent($content = '')
     {
-        file_put_contents(
-            $filePath = tempnam(sys_get_temp_dir(), 'digidoc_test_'),
-            $content
-        );
+        file_put_contents($filePath = $this->createTempFile(), $content);
 
         $this->filePaths[] = $filePath;
 

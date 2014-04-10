@@ -107,6 +107,20 @@ class Api
     }
 
     /**
+     * Retrieves the contents of the opened file from the server.
+     *
+     * @param Session $session
+     *
+     * @return string
+     */
+    public function getContents(Session $session)
+    {
+        list(, $contents) = array_values($this->client->__soapCall('GetSignedDoc', array($session->getId())));
+
+        return $this->decodeBase64($contents);
+    }
+
+    /**
      * Closes the given session with the DigiDoc service.
      *
      * @param Session $session
@@ -133,5 +147,28 @@ class Api
         }
 
         return false;
+    }
+
+    /**
+     * Decodes a piece of data from base64. The encoded data may be either
+     * a long string in base64 or delimited by newline characters.
+     *
+     * @param string $encoded
+     *
+     * @return string
+     */
+    private function decodeBase64($encoded)
+    {
+        $decoded    = '';
+        $delimiters = "\n";
+        $token      = strtok($encoded, $delimiters);
+
+        while (false !== $token) {
+            $decoded .= base64_decode($token);
+
+            $token = strtok($delimiters);
+        }
+
+        return $decoded;
     }
 }

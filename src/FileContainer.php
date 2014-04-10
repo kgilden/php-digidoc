@@ -68,6 +68,22 @@ class FileContainer
     }
 
     /**
+     * Writes the changes of the container to the disk.
+     *
+     * @return FileContainer
+     */
+    public function write()
+    {
+        if (!$this->isSessionStarted()) {
+            return $this;
+        }
+
+        file_put_contents($this->__toString(), $this->api->getContents($this->getSession()));
+
+        return $this;
+    }
+
+    /**
      * Makes it possible to use regular file operations (e.g. file_exists).
      *
      * @return string
@@ -82,10 +98,18 @@ class FileContainer
      */
     protected function getSession()
     {
-        if (!$this->session) {
+        if (!$this->isSessionStarted()) {
             $this->session = $this->api->openSession($this->toBase64());
         }
 
+        return $this->session;
+    }
+
+    /**
+     * @return boolean
+     */
+    private function isSessionStarted()
+    {
         return $this->session;
     }
 
