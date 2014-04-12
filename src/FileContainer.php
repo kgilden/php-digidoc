@@ -36,17 +36,17 @@ class FileContainer
     private $session;
 
     /**
-     * @param Api                 $api  The api for modifying this container
-     * @param \SplFileInfo|string $file The file or its path
+     * @param Api         $api  The api for modifying this container
+     * @param File|string $file The file or its path
      */
     public function __construct(Api $api, $file)
     {
         if (is_string($file)) {
-            $file = new \SplFileInfo($file);
+            $file = new File($file, false);
         }
 
-        if (!$file instanceof \SplFileInfo) {
-            throw new UnexpectedTypeException('\SplFileInfo" or "string', $file);
+        if (!$file instanceof File) {
+            throw new UnexpectedTypeException('\Symfony\Component\HttpFoundation\File\File" or "string', $file);
         }
 
         $this->api = $api;
@@ -120,7 +120,14 @@ class FileContainer
     protected function getSession()
     {
         if (!$this->isSessionStarted()) {
-            $this->session = $this->api->openSession($this->getContents());
+
+            if (file_exists($this->container->getPathname())) {
+                $file = $this->container;
+            } else {
+                $file = null;
+            }
+
+            $this->session = $this->api->openSession($file);
         }
 
         return $this->session;
@@ -132,24 +139,5 @@ class FileContainer
     private function isSessionStarted()
     {
         return $this->session;
-    }
-
-    /**
-     * Gets the contents of the container.
-     *
-     * @return string
-     */
-    private function getContents()
-    {
-        $level = error_reporting(0);
-        $contents = file_get_contents($this->container->getPathname());
-        error_reporting($level);
-
-        if (false === $contents) {
-            $error = error_get_last();
-            throw new RuntimeException($error['message']);
-        }
-
-        return $contents;
     }
 }

@@ -41,14 +41,20 @@ class Api
      *
      * @todo Handle exceptions
      *
-     * @param string $content
+     * @param File|null $file
      *
      * @return Session
      */
-    public function openSession($content = '')
+    public function openSession(File $file = null)
     {
+        if ($file) {
+            $contents = $this->base64Encode($this->getFileContents($file));
+        } else {
+            $contents = '';
+        }
+
         list($status, $sessionId) = array_values(
-            $this->client->__soapCall('StartSession', array('', $this->base64Encode($content), true, ''))
+            $this->client->__soapCall('StartSession', array('', $contents, true, ''))
         );
 
         return new Session($sessionId);
