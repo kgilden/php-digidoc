@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\File\File;
 /**
  * Representation of a DigiDoc file.
  */
-class FileContainer
+class FileContainer implements \Serializable
 {
     /**
      * @var Api
@@ -92,6 +92,31 @@ class FileContainer
         }
 
         return $this->api->addFile($this->getSession(), $file);
+    }
+
+    /**
+     * @return array
+     */
+    public function serialize()
+    {
+        return serialize(array(
+            'api' => $this->api,
+            'container' => $this->container->getPathname(),
+            'session' => $this->session,
+        ));
+    }
+
+    /**
+     * @param string $serialized
+     */
+    public function unserialize($serialized)
+    {
+        $serialized = unserialize($serialized);
+
+        $this->api = $serialized['api'];
+        $this->container = new File($serialized['container'], false);
+        $this->isNewFile = !file_exists($this->container);
+        $this->session = $serialized['session'];
     }
 
     /**

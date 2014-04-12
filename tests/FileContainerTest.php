@@ -138,6 +138,17 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         $container->addFile($newFile);
     }
 
+    /**
+     * @todo Improve the test
+     */
+    public function testIsSerializable()
+    {
+        $container = new FileContainer($this->getMockApi(), $this->createTempFile());
+
+        $serialized = serialize($container);
+        $newContainer = unserialize($serialized);
+    }
+
     protected function setUp()
     {
         $this->filePaths = array();

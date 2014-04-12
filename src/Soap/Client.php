@@ -24,19 +24,33 @@ class Client extends \SoapClient
     private $client;
 
     /**
-     * @param \SoapClient $client
+     * @var string
      */
-    public function __construct(\SoapClient $client)
+    private $wsdl;
+
+    /**
+     * @var array
+     */
+    private $options;
+
+    /**
+     * @param string $wsdl
+     * @param array  $options
+     */
+    public function __construct($wsdl, array $options = array())
     {
-        $this->client = $client;
+        $this->wsdl = $wsdl;
+        $this->options = $options;
+
+        $this->createClient();
     }
 
     /**
      * {@inheritDoc}
      */
-    public function SoapClient(\SoapClient $client)
+    public function SoapClient($wsdl, array $options = array())
     {
-        return new static($client);
+        return new static($wsdl, $options);
     }
 
     /**
@@ -137,5 +151,20 @@ class Client extends \SoapClient
         } catch (\SoapFault $e) {
             throw ApiException::createFromSoapFault($e);
         }
+    }
+
+    public function __sleep()
+    {
+        return array('wsdl', 'options');
+    }
+
+    public function __wakeup()
+    {
+        $this->createClient();
+    }
+
+    private function createClient()
+    {
+        $this->client = new \SoapClient($this->wsdl, $this->options);
     }
 }
