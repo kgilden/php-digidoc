@@ -31,6 +31,11 @@ class FileContainer
     private $container;
 
     /**
+     * @var boolean
+     */
+    private $isNewFile;
+
+    /**
      * @var Session
      */
     private $session;
@@ -51,6 +56,7 @@ class FileContainer
 
         $this->api = $api;
         $this->container = $file;
+        $this->isNewFile = !file_exists($file);
     }
 
     /**
@@ -121,16 +127,24 @@ class FileContainer
     {
         if (!$this->isSessionStarted()) {
 
-            if (file_exists($this->container->getPathname())) {
-                $file = $this->container;
-            } else {
-                $file = null;
-            }
+            $file = $this->isNewFile() ? null : $this->container;
 
             $this->session = $this->api->openSession($file);
+
+            if ($this->isNewFile()) {
+                $this->api->createContainer($this->getSession());
+            }
         }
 
         return $this->session;
+    }
+
+    /**
+     * @return boolean
+     */
+    protected function isNewFile()
+    {
+        return $this->isNewFile;
     }
 
     /**

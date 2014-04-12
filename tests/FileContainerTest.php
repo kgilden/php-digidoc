@@ -118,7 +118,24 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
 
         $container = new FileContainer($api, $this->createTempFile());
         $container->addFile($newFile);
+    }
 
+    public function testContainerCreatedWhenOpeningSessionWithNewFile()
+    {
+        $api = $this->getMockApi();
+        $this->mockOpenSession($api, $this->getMockSession());
+
+        $api
+            ->expects($this->once())
+            ->method('createContainer')
+        ;
+
+        $this->registerFilePath($filePath = sys_get_temp_dir().'/digidoc_test_new_file');
+
+        $newFile = $this->createTempFile();
+
+        $container = new FileContainer($api, $filePath);
+        $container->addFile($newFile);
     }
 
     protected function setUp()

@@ -23,6 +23,9 @@ class Api
     const CONTENT_TYPE_HASHCODE = 'HASHCODE';
     const CONTENT_TYPE_EMBEDDED = 'EMBEDDED_BASE64';
 
+    const DOC_FORMAT = 'BDOC';
+    const DOC_VERSION = '2.1';
+
     /**
      * @var \SoapClient
      */
@@ -58,6 +61,16 @@ class Api
         );
 
         return new Session($sessionId);
+    }
+
+    /**
+     * Creates a new DigiDoc container.
+     *
+     * @param Session $session
+     */
+    public function createContainer(Session $session)
+    {
+        $this->client->__soapCall('CreateSignedDoc', array($session->getId(), self::DOC_FORMAT, self::DOC_VERSION));
     }
 
     /**
@@ -165,13 +178,17 @@ class Api
     /**
      * Checks whether the signature with the given signature id is valid.
      *
-     * @param Signature $signature
-     * @param array     $signatures
+     * @param Signature    $signature
+     * @param array|object $signatures
      *
      * @return boolean
      */
-    private function isSignatureValid(Signature $signature, array $signatures)
+    private function isSignatureValid(Signature $signature, $signatures)
     {
+        if (!is_array($signatures)) {
+            $signatures = array($signatures);
+        }
+
         foreach ($signatures as $addedSignature) {
             if ($addedSignature->Id === $signature->getId()) {
                 return 'OK' === $addedSignature->Status;
