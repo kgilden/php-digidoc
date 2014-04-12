@@ -41,13 +41,14 @@ class FileContainer implements \Serializable
     private $session;
 
     /**
-     * @param Api         $api  The api for modifying this container
-     * @param File|string $file The file or its path
+     * @param Api         $api       The api for modifying this container
+     * @param File|string $file      The file or its path
+     * @param boolean     $checkPath Whether to check the path or not
      */
-    public function __construct(Api $api, $file)
+    public function __construct(Api $api, $file, $checkPath = true)
     {
         if (is_string($file)) {
-            $file = new File($file, false);
+            $file = new File($file, $checkPath);
         }
 
         if (!$file instanceof File) {

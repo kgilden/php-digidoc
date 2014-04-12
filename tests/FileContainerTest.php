@@ -64,7 +64,7 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFileNotExists($filePath);
 
-        $container = new FileContainer($this->getMockApi(), $filePath);
+        $container = new FileContainer($this->getMockApi(), $filePath, false);
         $container->write();
 
         $this->assertFileNotExists($filePath);
@@ -134,7 +134,7 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
 
         $newFile = $this->createTempFile();
 
-        $container = new FileContainer($api, $filePath);
+        $container = new FileContainer($api, $filePath, false);
         $container->addFile($newFile);
     }
 
