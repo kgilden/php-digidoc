@@ -93,6 +93,34 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', file_get_contents($filePath));
     }
 
+    /**
+     * @expectedException \KG\DigiDoc\Exception\UnexpectedTypeException
+     *
+     * @return [type]
+     */
+    public function  testAddFileFailsIfNotStringNorFile()
+    {
+        $container = new FileContainer($this->getMockApi(), $this->createTempFile());
+        $container->addFile(new \stdClass());
+    }
+
+    public function testAddFileDelegatesCallToApi()
+    {
+        $api = $this->getMockApi();
+        $this->mockOpenSession($api, $this->getMockSession());
+
+        $api
+            ->expects($this->once())
+            ->method('addFile')
+        ;
+
+        $newFile = $this->createTempFile();
+
+        $container = new FileContainer($api, $this->createTempFile());
+        $container->addFile($newFile);
+
+    }
+
     protected function setUp()
     {
         $this->filePaths = array();

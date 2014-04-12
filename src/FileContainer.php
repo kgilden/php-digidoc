@@ -13,6 +13,7 @@ namespace KG\DigiDoc;
 
 use KG\DigiDoc\Exception\RuntimeException;
 use KG\DigiDoc\Exception\UnexpectedTypeException;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Representation of a DigiDoc file.
@@ -65,6 +66,26 @@ class FileContainer
     public function createSignature(Certificate $certificate)
     {
         return $this->api->createSignature($this->getSession(), $certificate);
+    }
+
+    /**
+     * Adds a new file to the container.
+     *
+     * @todo Prevent from adding a file, if the container has signatures
+     *
+     * @param string|File $file
+     */
+    public function addFile($file)
+    {
+        if (is_string($file)) {
+            $file = new File($file);
+        }
+
+        if (!($file instanceof File)) {
+            throw new UnexpectedTypeException('Symfony\Component\HttpFoundation\File\File', $file);
+        }
+
+        return $this->api->addFile($this->getSession(), $file);
     }
 
     /**

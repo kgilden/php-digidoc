@@ -13,7 +13,8 @@
     ],
     "require": {
         "php": ">=5.3.8",
-        "ext-soap": "*"
+        "ext-soap": "*",
+        "symfony/http-foundation": "~2.0"
     },
     "require-dev": {
         "wsdl2phpgenerator/wsdl2phpgenerator": "~2.3"

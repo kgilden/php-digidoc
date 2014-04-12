@@ -11,12 +11,18 @@
 
 namespace KG\DigiDoc;
 
+use KG\DigiDoc\Exception\RuntimeException;
+use Symfony\Component\HttpFoundation\File\File;
+
 /**
  * The central point through which all the communication with the DigiDoc
  * service flows.
  */
 class Api
 {
+    const CONTENT_TYPE_HASHCODE = 'HASHCODE';
+    const CONTENT_TYPE_EMBEDDED = 'EMBEDDED_BASE64';
+
     /**
      * @var \SoapClient
      */
@@ -46,6 +52,26 @@ class Api
         );
 
         return new Session($sessionId);
+    }
+
+    /**
+     * Adds a new file to the given session
+     *
+     * @param Session $session
+     * @param File    $file
+     */
+    public function addFile(Session $session, File $file)
+    {
+        $response = $this->client->__soapCall('AddDataFile', array(
+            $session->getId(),
+            $file->getFileName(),
+            $file->getMimeType(),
+            self::CONTENT_TYPE_EMBEDDED,
+            $file->getSize(),
+            '',
+            '',
+            $this->base64Encode($this->getFileContents($file)),
+        ));
     }
 
     /**
@@ -150,7 +176,32 @@ class Api
     }
 
     /**
-     * Base64 encodes a string. This is just for symmetry with base64Decode.
+     * Gets the contents of the file.
+     *
+     * @todo This is almost a duplicate of FileContainer::getContents(),
+     *       refactor this out.
+     *
+     * @param File $file
+     *
+     * @return string
+     */
+    private function getFileContents(File $file)
+    {
+        $level = error_reporting(0);
+        $contents = file_get_contents($file->getPathname());
+        error_reporting($level);
+
+        if (false === $contents) {
+            $error = error_get_last();
+            throw new RuntimeException($error['message']);
+        }
+
+        return $contents;
+    }
+
+    /**
+     * Base64 encodes a string to the required format - split into 64 bytes
+     * delimited by newline characters.
      *
      * @param string $data
      *
@@ -158,7 +209,7 @@ class Api
      */
     private function base64Encode($data)
     {
-        return base64_encode($data);
+        return chunk_split(base64_encode($data), 64, "\n");
     }
 
 
