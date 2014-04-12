@@ -11,6 +11,7 @@
 
 namespace KG\DigiDoc;
 
+use KG\DigiDoc\Exception\ApiException;
 use KG\DigiDoc\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -42,11 +43,11 @@ class Api
     /**
      * Opens a new session with the DigiDoc service.
      *
-     * @todo Handle exceptions
-     *
      * @param File|null $file
      *
      * @return Session
+     *
+     * @throws ApiException If the response status is incorrect
      */
     public function openSession(File $file = null)
     {
@@ -56,9 +57,7 @@ class Api
             $contents = '';
         }
 
-        list($status, $sessionId) = array_values(
-            $this->client->__soapCall('StartSession', array('', $contents, true, ''))
-        );
+        list(, $sessionId) = array_values($this->call('StartSession', array('', $contents, true, '')));
 
         return new Session($sessionId);
     }
@@ -67,10 +66,12 @@ class Api
      * Creates a new DigiDoc container.
      *
      * @param Session $session
+     *
+     * @throws ApiException If the response status is incorrect
      */
     public function createContainer(Session $session)
     {
-        $this->client->__soapCall('CreateSignedDoc', array($session->getId(), self::DOC_FORMAT, self::DOC_VERSION));
+        $this->call('createSignedDoc', array($session->getId(), self::DOC_FORMAT, self::DOC_VERSION));
     }
 
     /**
@@ -81,7 +82,7 @@ class Api
      */
     public function addFile(Session $session, File $file)
     {
-        $response = $this->client->__soapCall('AddDataFile', array(
+        $this->call('addDataFile', array(
             $session->getId(),
             $file->getFileName(),
             $file->getMimeType(),
@@ -101,7 +102,7 @@ class Api
      */
     public function createSignature(Session $session, Certificate $certificate)
     {
-        list(, $signatureId, $challenge) = array_values($this->client->__soapCall('PrepareSignature', array(
+        list(, $signatureId, $challenge) = array_values($this->call('prepareSignature', array(
             $session->getId(),
             $certificate->getCertificate(),
             $certificate->getId()
@@ -113,6 +114,8 @@ class Api
     /**
      * Finalizes the signature, effectively making it valid.
      *
+     * @todo throw ApiException if the solution is too short BEFORE making the call.
+     *
      * @param Session   $session
      * @param Signature $signature
      * @param string    $solution
@@ -121,10 +124,10 @@ class Api
      */
     public function finishSignature(Session $session, Signature $signature, $solution)
     {
-        list(, $info) = array_values($this->client->__soapCall('FinalizeSignature', array(
+        list(, $info) = array_values($this->call('finalizeSignature', array(
             $session->getId(),
             $signature->getId(),
-            $solution
+            $solution,
         )));
 
         if ($this->isSignatureValid($signature, $info->SignatureInfo)) {
@@ -145,10 +148,7 @@ class Api
      */
     public function removeSignature(Session $session, Signature $signature)
     {
-        $this->client->__soapCall('RemoveSignature', array(
-            $session->getId(),
-            $signature->getId()
-        ));
+        $this->call('removeSignature', array($session->getId(), $signature->getId()));
     }
 
     /**
@@ -160,7 +160,7 @@ class Api
      */
     public function getContents(Session $session)
     {
-        list(, $contents) = array_values($this->client->__soapCall('GetSignedDoc', array($session->getId())));
+        list(, $contents) = array_values($this->call('getSignedDoc', array($session->getId())));
 
         return $this->base64Decode($contents);
     }
@@ -172,7 +172,38 @@ class Api
      */
     public function closeSession(Session $session)
     {
-        $this->client->__soapCall('CloseSession', array($session->getId()));
+        $this->call('closeSession', array($session->getId()));
+    }
+
+    /**
+     * Makes the actual call to the client and does initial status check.
+     *
+     * @param string $method
+     * @param array  $arguments
+     *
+     * @return array
+     */
+    private function call($method, array $arguments)
+    {
+        $result = $this->client->__soapCall(ucfirst($method), $arguments);
+
+        if ('OK' !== $result['Status']) {
+            throw ApiException::createIncorrectStatus($result['Status']);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $status
+     *
+     * @throws ApiException If the status is not "OK"
+     */
+    private function failIfStatusNotOk($status)
+    {
+        if ('OK' !== $status) {
+            throw ApiException::createIncorrectStatus($status);
+        }
     }
 
     /**

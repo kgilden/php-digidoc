@@ -76,4 +76,19 @@ class ApiException extends DigiDocException
 
         return new static($message, $code, $e);
     }
+
+    /**
+     * Creates a new ApiException for incorrect response statuses.
+     *
+     * @param string          $status
+     * @param \Exception|null $e
+     *
+     * @return ApiException
+     */
+    public static function createIncorrectStatus($status, \Exception $e = null)
+    {
+        $message = 'Expected server status to be "OK", got "%s" instead';
+
+        return new static(sprintf($message, $status), null, $e);
+    }
 }
