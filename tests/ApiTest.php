@@ -148,6 +148,16 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $api->createSignature($this->getMockSession(), $this->getMockCertificate());
     }
 
+    /**
+     * @expectedException \KG\DigiDoc\Exception\ApiException
+     * @expectedExceptionMessage Solution length must be "512", got "8".
+     */
+    public function testFinishSignatureFailsIfSolutionLengthIncorrect()
+    {
+        $api = new Api($this->getMockClient());
+        $api->finishSignature($this->getMockSession(), $this->getMockSignature(), 'DEADBEEF');
+    }
+
     public function testFinishSignatureReturnsTrueIfSuccessful()
     {
         $signatureId = 'S01';
@@ -174,7 +184,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client);
 
-        $this->assertTrue($api->finishSignature($this->getMockSession(), $signature, 'DEADBEEF'));
+        $this->assertTrue($api->finishSignature($this->getMockSession(), $signature, str_repeat('A', Api::SOLUTION_LENGTH)));
     }
 
     /**
@@ -194,7 +204,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client);
-        $api->finishSignature($this->getMockSession(), $this->getMockSignature(), 'DEADBEEF');
+        $api->finishSignature($this->getMockSession(), $this->getMockSignature(), str_repeat('A', Api::SOLUTION_LENGTH));
     }
 
     public function testSignatureFailsIfSignatureInvalid()
@@ -230,7 +240,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client);
-        $this->assertFalse($api->finishSignature($this->getMockSession(), $signature, 'DEADBEEF'));
+        $this->assertFalse($api->finishSignature($this->getMockSession(), $signature, str_repeat('A', Api::SOLUTION_LENGTH)));
     }
 
     /**

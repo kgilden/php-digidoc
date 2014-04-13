@@ -27,6 +27,8 @@ class Api
     const DOC_FORMAT = 'BDOC';
     const DOC_VERSION = '2.1';
 
+    const SOLUTION_LENGTH = 512;
+
     /**
      * @var \SoapClient
      */
@@ -124,6 +126,10 @@ class Api
      */
     public function finishSignature(Session $session, Signature $signature, $solution)
     {
+        if (self::SOLUTION_LENGTH !== strlen($solution)) {
+            throw new ApiException(sprintf('Solution length must be "%d", got "%d".', self::SOLUTION_LENGTH, strlen($solution)));
+        }
+
         list(, $info) = array_values($this->call('finalizeSignature', array(
             $session->getId(),
             $signature->getId(),
