@@ -378,6 +378,25 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $api->closeSession($this->getMockSession());
     }
 
+    public function testSessionNotOpenedAfterClosingSession()
+    {
+        $client = $this->getMockClient();
+        $this->mockStartSession($client, 'OK', 42);
+
+        $client
+            ->expects($this->at(1))
+            ->method('__soapCall')
+            ->with('CloseSession')
+            ->will($this->returnValue(array('Status' => 'OK')))
+        ;
+
+        $api = new Api($client);
+        $api->openSession();
+        $api->closeSession();
+
+        $this->assertFalse($api->isSessionOpened());
+    }
+
     protected function setUp()
     {
         $this->filePaths = array();

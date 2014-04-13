@@ -184,6 +184,8 @@ class Api
     public function closeSession()
     {
         $this->call('closeSession', array($this->getSession()->getId()));
+
+        $this->session = null;
     }
 
     /**
