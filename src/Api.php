@@ -193,6 +193,8 @@ class Api
      * @param array  $arguments
      *
      * @return array
+     *
+     * @throws ApiException If the status is not "OK"
      */
     private function call($method, array $arguments)
     {
@@ -203,18 +205,6 @@ class Api
         }
 
         return $result;
-    }
-
-    /**
-     * @param string $status
-     *
-     * @throws ApiException If the status is not "OK"
-     */
-    private function failIfStatusNotOk($status)
-    {
-        if ('OK' !== $status) {
-            throw ApiException::createIncorrectStatus($status);
-        }
     }
 
     /**
