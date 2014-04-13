@@ -31,11 +31,6 @@ class FileContainer implements \Serializable
     private $container;
 
     /**
-     * @var boolean
-     */
-    private $isNewFile;
-
-    /**
      * @param Api         $api       The api for modifying this container
      * @param File|string $file      The file or its path
      * @param boolean     $checkPath Whether to check the path or not
@@ -52,7 +47,6 @@ class FileContainer implements \Serializable
 
         $this->api = $api;
         $this->container = $file;
-        $this->isNewFile = !file_exists($file);
     }
 
     /**
@@ -110,7 +104,6 @@ class FileContainer implements \Serializable
 
         $this->api = $serialized['api'];
         $this->container = new File($serialized['container'], false);
-        $this->isNewFile = !file_exists($this->container);
     }
 
     /**
@@ -137,14 +130,6 @@ class FileContainer implements \Serializable
     public function __toString()
     {
         return $this->container->getPathname();
-    }
-
-    /**
-     * @return boolean
-     */
-    protected function isNewFile()
-    {
-        return $this->isNewFile;
     }
 
     /**
