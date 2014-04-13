@@ -221,9 +221,15 @@ class Api
      * @todo Fail if the session is not opened
      *
      * @return Session
+     *
+     * @throws ApiException If the session is not opened
      */
     protected function getSession()
     {
+        if (!$this->isSessionOpened()) {
+            throw new ApiException('You must open a session before making any subsequent requests.');
+        }
+
         return $this->session;
     }
 

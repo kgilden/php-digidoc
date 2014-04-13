@@ -21,6 +21,42 @@ class ApiTest extends \PHPUnit_Framework_TestCase
      */
     protected $filePaths;
 
+    public function testSessionNotOpenedByDefault()
+    {
+        $api = new Api($this->getMockClient());
+
+        $this->assertFalse($api->isSessionOpened());
+    }
+
+    /**
+     * @expectedException        \KG\DigiDoc\Exception\ApiException
+     * @expectedExceptionMessage You must open a session before making any subsequent requests.
+     */
+    public function testApiFailsIfSessionNotOpened()
+    {
+        $api = new Api($this->getMockClient());
+        $api->createContainer();
+    }
+
+    /**
+     * @expectedException        \KG\DigiDoc\Exception\ApiException
+     * @expectedExceptionMessage The session is already opened (id 1234)
+     */
+    public function testOpenSessionFailsIfSessionAlreadyOpened()
+    {
+        $client = $this->getMockClient();
+        $client
+            ->expects($this->once())
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 1234)))
+        ;
+
+        $api = new Api($client);
+        $api->openSession();
+        $api->openSession();
+    }
+
     public function testOpenSessionCreatesSession()
     {
         $client = $this->getMockClient();
