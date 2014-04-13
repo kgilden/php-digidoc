@@ -140,6 +140,14 @@ class FileContainer implements \Serializable
     }
 
     /**
+     * @return boolean
+     */
+    protected function isNewFile()
+    {
+        return $this->isNewFile;
+    }
+
+    /**
      * @return Api
      */
     private function getApi()
@@ -149,13 +157,5 @@ class FileContainer implements \Serializable
         }
 
         return $this->api;
-    }
-
-    /**
-     * @return boolean
-     */
-    protected function isNewFile()
-    {
-        return $this->isNewFile;
     }
 }
