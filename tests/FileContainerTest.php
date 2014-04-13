@@ -41,14 +41,13 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
     public function testCreateSignatureDelegatesCallToApi()
     {
         $api = $this->getMockApi();
-        $this->mockOpenSession($api, $session = $this->getMockSession());
 
         $certificate = $this->getMockCertificate();
 
         $api
             ->expects($this->once())
             ->method('createSignature')
-            ->with($session, $certificate)
+            ->with($certificate)
             ->will($this->returnValue($expectedSignature = 'foo'))
         ;
 
@@ -75,7 +74,12 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         $filePath = $this->createTempFile('');
 
         $api = $this->getMockApi();
-        $this->mockOpenSession($api, $this->getMockSession());
+
+        $api
+            ->expects($this->atLeastOnce())
+            ->method('isSessionOpened')
+            ->will($this->returnValue(true))
+        ;
 
         $api
             ->expects($this->once())
@@ -117,24 +121,6 @@ class FileContainerTest extends \PHPUnit_Framework_TestCase
         $newFile = $this->createTempFile();
 
         $container = new FileContainer($api, $this->createTempFile());
-        $container->addFile($newFile);
-    }
-
-    public function testContainerCreatedWhenOpeningSessionWithNewFile()
-    {
-        $api = $this->getMockApi();
-        $this->mockOpenSession($api, $this->getMockSession());
-
-        $api
-            ->expects($this->once())
-            ->method('createContainer')
-        ;
-
-        $this->registerFilePath($filePath = sys_get_temp_dir().'/digidoc_test_new_file');
-
-        $newFile = $this->createTempFile();
-
-        $container = new FileContainer($api, $filePath, false);
         $container->addFile($newFile);
     }
 

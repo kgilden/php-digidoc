@@ -35,6 +35,11 @@ class Api
     private $client;
 
     /**
+     * @var Session
+     */
+    private $session;
+
+    /**
      * @param \SoapClient $client
      */
     public function __construct(\SoapClient $client)
@@ -47,13 +52,15 @@ class Api
      *
      * @param File|null $file
      *
-     * @return Session
-     *
      * @throws ApiException If the response status is incorrect
      */
     public function openSession(File $file = null)
     {
-        if ($file) {
+        if ($this->isSessionOpened()) {
+            throw new ApiException(sprintf('The session is already opened (id %s)', $this->getSession()->getId()));
+        }
+
+        if ($file && file_exists($file)) {
             $contents = $this->base64Encode($this->getFileContents($file));
         } else {
             $contents = '';
@@ -61,31 +68,36 @@ class Api
 
         list(, $sessionId) = array_values($this->call('StartSession', array('', $contents, true, '')));
 
-        return new Session($sessionId);
+        $this->session = new Session($sessionId);
+    }
+
+    /**
+     * @return boolean whether the session has been opened
+     */
+    public function isSessionOpened()
+    {
+        return $this->session ? true : false;
     }
 
     /**
      * Creates a new DigiDoc container.
      *
-     * @param Session $session
-     *
      * @throws ApiException If the response status is incorrect
      */
-    public function createContainer(Session $session)
+    public function createContainer()
     {
-        $this->call('createSignedDoc', array($session->getId(), self::DOC_FORMAT, self::DOC_VERSION));
+        $this->call('createSignedDoc', array($this->getSession()->getId(), self::DOC_FORMAT, self::DOC_VERSION));
     }
 
     /**
      * Adds a new file to the given session
      *
-     * @param Session $session
-     * @param File    $file
+     * @param File $file
      */
-    public function addFile(Session $session, File $file)
+    public function addFile(File $file)
     {
-        $this->call('addDataFile', array(
-            $session->getId(),
+        $this->call('addDataFile', $foo = array(
+            $this->getSession()->getId(),
             $file->getFileName(),
             $file->getMimeType(),
             self::CONTENT_TYPE_EMBEDDED,
@@ -97,20 +109,19 @@ class Api
     }
 
     /**
-     * @param Session     $session
      * @param Certificate $certificate
      *
      * @return Signature
      */
-    public function createSignature(Session $session, Certificate $certificate)
+    public function createSignature(Certificate $certificate)
     {
         list(, $signatureId, $challenge) = array_values($this->call('prepareSignature', array(
-            $session->getId(),
+            $this->getSession()->getId(),
             $certificate->getCertificate(),
             $certificate->getId()
         )));
 
-        return new Signature($this, $session, $certificate, $signatureId, $challenge);
+        return new Signature($this, $certificate, $signatureId, $challenge);
     }
 
     /**
@@ -118,20 +129,19 @@ class Api
      *
      * @todo throw ApiException if the solution is too short BEFORE making the call.
      *
-     * @param Session   $session
      * @param Signature $signature
      * @param string    $solution
      *
      * @return boolean Whether the signature was successfully finished
      */
-    public function finishSignature(Session $session, Signature $signature, $solution)
+    public function finishSignature(Signature $signature, $solution)
     {
         if (self::SOLUTION_LENGTH !== strlen($solution)) {
             throw new ApiException(sprintf('Solution length must be "%d", got "%d".', self::SOLUTION_LENGTH, strlen($solution)));
         }
 
         list(, $info) = array_values($this->call('finalizeSignature', array(
-            $session->getId(),
+            $this->getSession()->getId(),
             $signature->getId(),
             $solution,
         )));
@@ -141,7 +151,7 @@ class Api
         }
 
         // Removes the added invalid signature to preserve atomicity.
-        $this->removeSignature($session, $signature);
+        $this->removeSignature($signature);
 
         return false;
     }
@@ -149,36 +159,31 @@ class Api
     /**
      * Removes the given signature.
      *
-     * @param Session   $session
      * @param Signature $signature
      */
-    public function removeSignature(Session $session, Signature $signature)
+    public function removeSignature(Signature $signature)
     {
-        $this->call('removeSignature', array($session->getId(), $signature->getId()));
+        $this->call('removeSignature', array($this->getSession(), $signature->getId()));
     }
 
     /**
      * Retrieves the contents of the opened file from the server.
      *
-     * @param Session $session
-     *
      * @return string
      */
-    public function getContents(Session $session)
+    public function getContents()
     {
-        list(, $contents) = array_values($this->call('getSignedDoc', array($session->getId())));
+        list(, $contents) = array_values($this->call('getSignedDoc', array($this->getSession()->getId())));
 
         return $this->base64Decode($contents);
     }
 
     /**
      * Closes the given session with the DigiDoc service.
-     *
-     * @param Session $session
      */
-    public function closeSession(Session $session)
+    public function closeSession()
     {
-        $this->call('closeSession', array($session->getId()));
+        $this->call('closeSession', array($this->getSession()->getId()));
     }
 
     /**
@@ -210,6 +215,16 @@ class Api
         if ('OK' !== $status) {
             throw ApiException::createIncorrectStatus($status);
         }
+    }
+
+    /**
+     * @todo Fail if the session is not opened
+     *
+     * @return Session
+     */
+    protected function getSession()
+    {
+        return $this->session;
     }
 
     /**

@@ -19,7 +19,6 @@ class SignatureTest extends \PHPUnit_Framework_TestCase
     {
         $signature = new Signature(
             $this->getMockApi(),
-            $this->getMockSession(),
             $this->getMockCertificate(),
             'F005B411',
             'B45EBA11'
@@ -37,7 +36,7 @@ class SignatureTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(true))
         ;
 
-        $signature = new Signature($api, $this->getMockSession(), $this->getMockCertificate(), 'F005B411', 'B45EBA11');
+        $signature = new Signature($api, $this->getMockCertificate(), 'F005B411', 'B45EBA11');
         $signature->seal('DEADBEEF');
 
         $this->assertTrue($signature->isSealed());
@@ -52,7 +51,7 @@ class SignatureTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(false))
         ;
 
-        $signature = new Signature($api, $this->getMockSession(), $this->getMockCertificate(), 'F005B411', 'B45EBA11');
+        $signature = new Signature($api, $this->getMockCertificate(), 'F005B411', 'B45EBA11');
         $signature->seal('DEADBEEF');
 
         $this->assertFalse($signature->isSealed());
@@ -77,18 +76,6 @@ class SignatureTest extends \PHPUnit_Framework_TestCase
     {
         return $this
             ->getMockBuilder('KG\DigiDoc\Certificate')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-    }
-
-    /**
-     * @return \KG\DigiDoc\Session|PHPUnit_Framework_MockObject_MockObject
-     */
-    private function getMockSession()
-    {
-        return $this
-            ->getMockBuilder('KG\DigiDoc\Session')
             ->disableOriginalConstructor()
             ->getMock()
         ;

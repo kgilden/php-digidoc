@@ -39,21 +39,14 @@ class Signature
     private $sealed = false;
 
     /**
-     * @var Session
-     */
-    private $session;
-
-    /**
      * @param Api         $api
-     * @param Session     $session
      * @param Certificate $certificate
      * @param string      $id        Signature id
      * @param string      $challenge A solvable challenge to seal this signature
      */
-    public function __construct(Api $api, Session $session, Certificate $certificate, $id, $challenge)
+    public function __construct(Api $api, Certificate $certificate, $id, $challenge)
     {
         $this->api = $api;
-        $this->session = $session;
         $this->certificate = $certificate;
         $this->id = $id;
         $this->challenge = $challenge;
@@ -89,7 +82,7 @@ class Signature
      */
     public function seal($solution)
     {
-        return $this->sealed = $this->api->finishSignature($this->session, $this, $solution);
+        return $this->sealed = $this->api->finishSignature($this, $solution);
     }
 
     /**

@@ -36,11 +36,6 @@ class FileContainer implements \Serializable
     private $isNewFile;
 
     /**
-     * @var Session
-     */
-    private $session;
-
-    /**
      * @param Api         $api       The api for modifying this container
      * @param File|string $file      The file or its path
      * @param boolean     $checkPath Whether to check the path or not
@@ -72,7 +67,7 @@ class FileContainer implements \Serializable
      */
     public function createSignature(Certificate $certificate)
     {
-        return $this->api->createSignature($this->getSession(), $certificate);
+        return $this->getApi()->createSignature($certificate);
     }
 
     /**
@@ -92,7 +87,7 @@ class FileContainer implements \Serializable
             throw new UnexpectedTypeException('Symfony\Component\HttpFoundation\File\File', $file);
         }
 
-        return $this->api->addFile($this->getSession(), $file);
+        return $this->getApi()->addFile($file);
     }
 
     /**
@@ -103,7 +98,6 @@ class FileContainer implements \Serializable
         return serialize(array(
             'api' => $this->api,
             'container' => $this->container->getPathname(),
-            'session' => $this->session,
         ));
     }
 
@@ -117,7 +111,6 @@ class FileContainer implements \Serializable
         $this->api = $serialized['api'];
         $this->container = new File($serialized['container'], false);
         $this->isNewFile = !file_exists($this->container);
-        $this->session = $serialized['session'];
     }
 
     /**
@@ -127,11 +120,11 @@ class FileContainer implements \Serializable
      */
     public function write()
     {
-        if (!$this->isSessionStarted()) {
+        if (!$this->api->isSessionOpened()) {
             return $this;
         }
 
-        file_put_contents($this->__toString(), $this->api->getContents($this->getSession()));
+        file_put_contents($this->__toString(), $this->getApi()->getContents());
 
         return $this;
     }
@@ -147,22 +140,15 @@ class FileContainer implements \Serializable
     }
 
     /**
-     * @return Session
+     * @return Api
      */
-    protected function getSession()
+    private function getApi()
     {
-        if (!$this->isSessionStarted()) {
-
-            $file = $this->isNewFile() ? null : $this->container;
-
-            $this->session = $this->api->openSession($file);
-
-            if ($this->isNewFile()) {
-                $this->api->createContainer($this->getSession());
-            }
+        if (!$this->api->isSessionOpened()) {
+            $this->api->openSession($this->container);
         }
 
-        return $this->session;
+        return $this->api;
     }
 
     /**
@@ -171,13 +157,5 @@ class FileContainer implements \Serializable
     protected function isNewFile()
     {
         return $this->isNewFile;
-    }
-
-    /**
-     * @return boolean
-     */
-    private function isSessionStarted()
-    {
-        return $this->session;
     }
 }

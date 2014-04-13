@@ -33,8 +33,9 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client);
+        $api->openSession();
 
-        $this->assertInstanceOf('KG\DigiDoc\Session', $api->openSession());
+        $this->assertTrue($api->isSessionOpened());
     }
 
     public function testOpenSessionAddsFileContentsIfFileAdded()
@@ -75,15 +76,24 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCreateContainerFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('__soapCall')
-            ->with('CreateSignedDoc', array(null, Api::DOC_FORMAT, Api::DOC_VERSION))
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
+            ->method('__soapCall')
+            ->with('CreateSignedDoc', array(42, Api::DOC_FORMAT, Api::DOC_VERSION))
             ->will($this->returnValue(array('Status' => 'FOO', 'SignedDocInfo' => null)))
         ;
 
         $api = new Api($client);
-        $api->createContainer($this->getMockSession());
+        $api->openSession();
+        $api->createContainer();
     }
 
     /**
@@ -95,11 +105,19 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $pathInfo = pathinfo($filePath);
 
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('AddDataFile', array(
-                null,
+                42,
                 $pathInfo['filename'],
                 'text/plain',
                 Api::CONTENT_TYPE_EMBEDDED,
@@ -112,21 +130,31 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client);
-        $api->addFile($this->getMockSession(), new File($filePath));
+        $api->openSession();
+        $api->addFile(new File($filePath));
     }
 
     public function testCreateSignatureReturnsSignature()
     {
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('PrepareSignature')
             ->will($this->returnValue(array('Status' => 'OK', 'SignatureId' => 'DEAD', 'SignedInfoDigest' => 'BEEF')))
         ;
 
         $api = new Api($client);
-        $signature = $api->createSignature($this->getMockSession(), $this->getMockCertificate());
+        $api->openSession();
+        $signature = $api->createSignature($this->getMockCertificate());
 
         $this->assertEquals('BEEF', $signature->getChallenge());
     }
@@ -137,15 +165,24 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCreateSignatureFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('PrepareSignature')
             ->will($this->returnValue(array('Status' => 'FOO', 'SignatureId' => '', 'SignedInfoDigest' => '')))
         ;
 
         $api = new Api($client);
-        $api->createSignature($this->getMockSession(), $this->getMockCertificate());
+        $api->openSession();
+        $api->createSignature($this->getMockCertificate());
     }
 
     /**
@@ -155,7 +192,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testFinishSignatureFailsIfSolutionLengthIncorrect()
     {
         $api = new Api($this->getMockClient());
-        $api->finishSignature($this->getMockSession(), $this->getMockSignature(), 'DEADBEEF');
+        $api->finishSignature($this->getMockSignature(), 'DEADBEEF');
     }
 
     public function testFinishSignatureReturnsTrueIfSuccessful()
@@ -168,8 +205,16 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $info->SignatureInfo->Status = 'OK';
 
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('FinalizeSignature')
             ->will($this->returnValue(array('Status' => 'OK', 'SignedDocInfo' => $info)))
@@ -183,8 +228,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client);
-
-        $this->assertTrue($api->finishSignature($this->getMockSession(), $signature, str_repeat('A', Api::SOLUTION_LENGTH)));
+        $api->openSession();
+        $this->assertTrue($api->finishSignature($signature, str_repeat('A', Api::SOLUTION_LENGTH)));
     }
 
     /**
@@ -196,15 +241,24 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $info->SignatureInfo = new \stdClass();
 
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('FinalizeSignature')
             ->will($this->returnValue(array('Status' => 'FOO', 'SignedDocInfo' => $info)))
         ;
 
         $api = new Api($client);
-        $api->finishSignature($this->getMockSession(), $this->getMockSignature(), str_repeat('A', Api::SOLUTION_LENGTH));
+        $api->openSession();
+        $api->finishSignature($this->getMockSignature(), str_repeat('A', Api::SOLUTION_LENGTH));
     }
 
     public function testSignatureFailsIfSignatureInvalid()
@@ -221,12 +275,19 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $client
             ->expects($this->at(0))
             ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
+            ->method('__soapCall')
             ->with('FinalizeSignature')
             ->will($this->returnValue(array('Status' => 'OK', 'SignedDocInfo' => $info)))
         ;
 
         $client
-            ->expects($this->at(1))
+            ->expects($this->at(2))
             ->method('__soapCall')
             ->with('RemoveSignature')
             ->will($this->returnValue(array('Status' => 'OK', 'SignedDocInfo' => null)))
@@ -240,7 +301,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client);
-        $this->assertFalse($api->finishSignature($this->getMockSession(), $signature, str_repeat('A', Api::SOLUTION_LENGTH)));
+        $api->openSession();
+        $this->assertFalse($api->finishSignature($signature, str_repeat('A', Api::SOLUTION_LENGTH)));
     }
 
     /**
@@ -249,15 +311,24 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testRemoveSignatureFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('RemoveSignature')
             ->will($this->returnValue(array('Status' => 'ERROR', 'SignedDocInfo' => null)))
         ;
 
         $api = new Api($client);
-        $api->removeSignature($this->getMockSession(), $this->getMockSignature());
+        $api->openSession();
+        $api->removeSignature($this->getMockSignature());
     }
 
     public function testGetContentsReturnsBase64DecodedData()
@@ -265,14 +336,23 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $expected = 'Hello, world!';
 
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('GetSignedDoc')
             ->will($this->returnValue(array('Status' => 'OK', 'SignedDocData' => chunk_split(base64_encode($expected), 4, "\n"))))
         ;
 
         $api = new Api($client);
+        $api->openSession();
         $this->assertEquals($expected, $api->getContents($this->getMockSession()));
     }
 
@@ -282,14 +362,23 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testGetContentsFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('GetSignedDoc')
             ->will($this->returnValue(array('Status' => 'ERROR', 'SignedDocData' => null)))
         ;
 
         $api = new Api($client);
+        $api->openSession();
         $api->getContents($this->getMockSession());
     }
 
@@ -299,14 +388,23 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCloseSessionFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
+
         $client
-            ->expects($this->once())
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
+        ;
+
+        $client
+            ->expects($this->at(1))
             ->method('__soapCall')
             ->with('CloseSession')
             ->will($this->returnValue(array('Status' => 'ERROR')))
         ;
 
         $api = new Api($client);
+        $api->openSession();
         $api->closeSession($this->getMockSession());
     }
 
