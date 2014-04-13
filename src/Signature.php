@@ -24,6 +24,11 @@ class Signature
     private $id;
 
     /**
+     * @var Certificate
+     */
+    private $certificate;
+
+    /**
      * @var string
      */
     private $challenge;
@@ -39,15 +44,17 @@ class Signature
     private $session;
 
     /**
-     * @param Api     $api
-     * @param Session $session
-     * @param string  $id        Signature id
-     * @param string  $challenge A solvable challenge to seal this signature
+     * @param Api         $api
+     * @param Session     $session
+     * @param Certificate $certificate
+     * @param string      $id        Signature id
+     * @param string      $challenge A solvable challenge to seal this signature
      */
-    public function __construct(Api $api, Session $session, $id, $challenge)
+    public function __construct(Api $api, Session $session, Certificate $certificate, $id, $challenge)
     {
         $this->api = $api;
         $this->session = $session;
+        $this->certificate = $certificate;
         $this->id = $id;
         $this->challenge = $challenge;
     }
@@ -60,6 +67,11 @@ class Signature
     public function getId()
     {
         return $this->id;
+    }
+
+    public function getCertificate()
+    {
+        return $this->certificate;
     }
 
     /**

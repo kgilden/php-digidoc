@@ -110,7 +110,7 @@ class Api
             $certificate->getId()
         )));
 
-        return new Signature($this, $session, $signatureId, $challenge);
+        return new Signature($this, $session, $certificate, $signatureId, $challenge);
     }
 
     /**
