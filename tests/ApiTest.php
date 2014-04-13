@@ -112,13 +112,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCreateContainerFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -141,13 +135,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $pathInfo = pathinfo($filePath);
 
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -173,13 +161,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCreateSignatureReturnsSignature()
     {
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -201,13 +183,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCreateSignatureFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -241,13 +217,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $info->SignatureInfo->Status = 'OK';
 
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -277,13 +247,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $info->SignatureInfo = new \stdClass();
 
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -307,13 +271,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $info->SignatureInfo->Status = 'ERROR';
 
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -347,13 +305,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testRemoveSignatureFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -372,13 +324,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $expected = 'Hello, world!';
 
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -398,13 +344,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testGetContentsFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -424,13 +364,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     public function testCloseSessionFailsIfStatusIncorrect()
     {
         $client = $this->getMockClient();
-
-        $client
-            ->expects($this->at(0))
-            ->method('__soapCall')
-            ->with('StartSession')
-            ->will($this->returnValue(array('Status' => 'OK', 'SessionId' => 42)))
-        ;
+        $this->mockStartSession($client, 'OK', 42);
 
         $client
             ->expects($this->at(1))
@@ -543,6 +477,19 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->getMockBuilder('KG\DigiDoc\Signature')
             ->disableOriginalConstructor()
             ->getMock()
+        ;
+    }
+
+    /**
+     * Mocks the start session soap call.
+     */
+    private function mockStartSession(\PHPUnit_Framework_MockObject_MockObject $client, $status, $sessionId)
+    {
+        $client
+            ->expects($this->at(0))
+            ->method('__soapCall')
+            ->with('StartSession')
+            ->will($this->returnValue(array('Status' => $status, 'SessionId' => $sessionId)))
         ;
     }
 
