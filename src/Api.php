@@ -196,7 +196,7 @@ class Api
      *
      * @throws ApiException If the status is not "OK"
      */
-    private function call($method, array $arguments)
+    protected function call($method, array $arguments)
     {
         $result = $this->client->__soapCall(ucfirst($method), $arguments);
 
@@ -208,8 +208,6 @@ class Api
     }
 
     /**
-     * @todo Fail if the session is not opened
-     *
      * @return Session
      *
      * @throws ApiException If the session is not opened
