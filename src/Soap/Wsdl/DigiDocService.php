@@ -23,25 +23,26 @@ class DigiDocService extends \SoapClient
      * @access private
      */
     private static $classmap = array(
-      'DataFileAttribute' => '\KG\DigiDoc\Soap\Wsdl\DataFileAttribute',
-      'DataFileInfo' => '\KG\DigiDoc\Soap\Wsdl\DataFileInfo',
-      'SignerRole' => '\KG\DigiDoc\Soap\Wsdl\SignerRole',
-      'SignatureProductionPlace' => '\KG\DigiDoc\Soap\Wsdl\SignatureProductionPlace',
-      'CertificatePolicy' => '\KG\DigiDoc\Soap\Wsdl\CertificatePolicy',
-      'CertificateInfo' => '\KG\DigiDoc\Soap\Wsdl\CertificateInfo',
-      'SignerInfo' => '\KG\DigiDoc\Soap\Wsdl\SignerInfo',
-      'ConfirmationInfo' => '\KG\DigiDoc\Soap\Wsdl\ConfirmationInfo',
-      'TstInfo' => '\KG\DigiDoc\Soap\Wsdl\TstInfo',
-      'RevokedInfo' => '\KG\DigiDoc\Soap\Wsdl\RevokedInfo',
-      'CRLInfo' => '\KG\DigiDoc\Soap\Wsdl\CRLInfo',
-      'Error' => '\KG\DigiDoc\Soap\Wsdl\Error',
-      'SignatureInfo' => '\KG\DigiDoc\Soap\Wsdl\SignatureInfo',
-      'SignedDocInfo' => '\KG\DigiDoc\Soap\Wsdl\SignedDocInfo',
-      'DataFileData' => '\KG\DigiDoc\Soap\Wsdl\DataFileData',
-      'SignatureModule' => '\KG\DigiDoc\Soap\Wsdl\SignatureModule',
-      'SignatureModulesArray' => '\KG\DigiDoc\Soap\Wsdl\SignatureModulesArray',
-      'DataFileDigest' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigest',
-      'DataFileDigestList' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigestList');
+        'DataFileAttribute' => '\KG\DigiDoc\Soap\Wsdl\DataFileAttribute',
+        'DataFileInfo' => '\KG\DigiDoc\Soap\Wsdl\DataFileInfo',
+        'SignerRole' => '\KG\DigiDoc\Soap\Wsdl\SignerRole',
+        'SignatureProductionPlace' => '\KG\DigiDoc\Soap\Wsdl\SignatureProductionPlace',
+        'CertificatePolicy' => '\KG\DigiDoc\Soap\Wsdl\CertificatePolicy',
+        'CertificateInfo' => '\KG\DigiDoc\Soap\Wsdl\CertificateInfo',
+        'SignerInfo' => '\KG\DigiDoc\Soap\Wsdl\SignerInfo',
+        'ConfirmationInfo' => '\KG\DigiDoc\Soap\Wsdl\ConfirmationInfo',
+        'TstInfo' => '\KG\DigiDoc\Soap\Wsdl\TstInfo',
+        'RevokedInfo' => '\KG\DigiDoc\Soap\Wsdl\RevokedInfo',
+        'CRLInfo' => '\KG\DigiDoc\Soap\Wsdl\CRLInfo',
+        'Error' => '\KG\DigiDoc\Soap\Wsdl\Error',
+        'SignatureInfo' => '\KG\DigiDoc\Soap\Wsdl\SignatureInfo',
+        'SignedDocInfo' => '\KG\DigiDoc\Soap\Wsdl\SignedDocInfo',
+        'DataFileData' => '\KG\DigiDoc\Soap\Wsdl\DataFileData',
+        'SignatureModule' => '\KG\DigiDoc\Soap\Wsdl\SignatureModule',
+        'SignatureModulesArray' => '\KG\DigiDoc\Soap\Wsdl\SignatureModulesArray',
+        'DataFileDigest' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigest',
+        'DataFileDigestList' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigestList',
+    );
 
     /**
      *
