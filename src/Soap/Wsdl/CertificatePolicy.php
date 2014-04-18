@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace KG\DiciDoc\Soap\Wsdl;
+namespace KG\DigiDoc\Soap\Wsdl;
 
 class CertificatePolicy
 {
