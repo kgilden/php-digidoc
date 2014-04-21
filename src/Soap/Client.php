@@ -18,127 +18,41 @@ use KG\DigiDoc\Exception\ApiException;
  */
 class Client extends \SoapClient
 {
-    /**
-     * @var \SoapClient
-     */
-    private $client;
+    private static $classmap = [
+        'DataFileAttribute' => '\KG\DigiDoc\Soap\Wsdl\DataFileAttribute',
+        'DataFileInfo' => '\KG\DigiDoc\Soap\Wsdl\DataFileInfo',
+        'SignerRole' => '\KG\DigiDoc\Soap\Wsdl\SignerRole',
+        'SignatureProductionPlace' => '\KG\DigiDoc\Soap\Wsdl\SignatureProductionPlace',
+        'CertificatePolicy' => '\KG\DigiDoc\Soap\Wsdl\CertificatePolicy',
+        'CertificateInfo' => '\KG\DigiDoc\Soap\Wsdl\CertificateInfo',
+        'SignerInfo' => '\KG\DigiDoc\Soap\Wsdl\SignerInfo',
+        'ConfirmationInfo' => '\KG\DigiDoc\Soap\Wsdl\ConfirmationInfo',
+        'TstInfo' => '\KG\DigiDoc\Soap\Wsdl\TstInfo',
+        'RevokedInfo' => '\KG\DigiDoc\Soap\Wsdl\RevokedInfo',
+        'CRLInfo' => '\KG\DigiDoc\Soap\Wsdl\CRLInfo',
+        'Error' => '\KG\DigiDoc\Soap\Wsdl\Error',
+        'SignatureInfo' => '\KG\DigiDoc\Soap\Wsdl\SignatureInfo',
+        'SignedDocInfo' => '\KG\DigiDoc\Soap\Wsdl\SignedDocInfo',
+        'DataFileData' => '\KG\DigiDoc\Soap\Wsdl\DataFileData',
+        'SignatureModule' => '\KG\DigiDoc\Soap\Wsdl\SignatureModule',
+        'SignatureModulesArray' => '\KG\DigiDoc\Soap\Wsdl\SignatureModulesArray',
+        'DataFileDigest' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigest',
+        'DataFileDigestList' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigestList',
+    ];
 
     /**
-     * @var string
-     */
-    private $wsdl;
-
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
-     * @param string $wsdl
      * @param array  $options
+     * @param string $wsdl
      */
-    public function __construct($wsdl, array $options = array())
+    public function __construct(array $options = array(), $wsdl = 'https://www.openxades.org:9443/?wsdl')
     {
-        $this->wsdl = $wsdl;
-        $this->options = $options;
+        if (!isset($options['classmap'])) {
+            $options['classmap'] = [];
+        }
 
-        $this->createClient();
-    }
+        $options['classmap'] = array_merge(self::$classmap, $options['classmap']);
 
-    /**
-     * {@inheritDoc}
-     */
-    public function SoapClient($wsdl, array $options = array())
-    {
-        return new static($wsdl, $options);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __call($function_name, $arguments)
-    {
-        return $this->client->__call($function_name, $arguments);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __doRequest($request, $location, $action, $version, $one_way = 0)
-    {
-        return $this->client->__doRequest($request, $location, $action, $version, $one_way);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __getFunctions()
-    {
-        return $this->client->__doRequest();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __getLastRequest()
-    {
-        return $this->client->__getLastRequest();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __getLastRequestHeaders()
-    {
-        return $this->client->__getLastRequestHeaders();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __getLastResponse()
-    {
-        return $this->client->__getLastResponse();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __getLastResponseHeaders()
-    {
-        return $this->client->__getLastResponseHeaders();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __getTypes()
-    {
-        return $this->client->__getTypes();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __setCookie($name, $value = null)
-    {
-        return $this->client->__setCookie($name, $value);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __setLocation($new_location = null)
-    {
-        return $this->client->__setLocation($new_location);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __setSoapHeaders($soapHeaders = null)
-    {
-        return $this->client->__setSoapHeaders($soapHeaders);
+        parent::__construct($wsdl, $options);
     }
 
     /**
@@ -147,24 +61,17 @@ class Client extends \SoapClient
     public function __soapCall($function_name, $arguments, $options = array(), $input_headers = null, &$output_headers = null)
     {
         try {
-            return $this->client->__soapCall($function_name, $arguments, $options, $input_headers, $output_headers);
+
+            $result = parent::__soapCall($function_name, $arguments, $options, $input_headers, $output_headers);
+
+            if ('OK' !== $result['Status']) {
+                throw ApiException::createIncorrectStatus($result['Status']);
+            }
+
         } catch (\SoapFault $e) {
             throw ApiException::createFromSoapFault($e);
         }
-    }
 
-    public function __sleep()
-    {
-        return array('wsdl', 'options');
-    }
-
-    public function __wakeup()
-    {
-        $this->createClient();
-    }
-
-    private function createClient()
-    {
-        $this->client = new \SoapClient($this->wsdl, $this->options);
+        return $result;
     }
 }

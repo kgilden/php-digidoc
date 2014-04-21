@@ -17,25 +17,30 @@ namespace KG\DigiDoc;
 class Certificate
 {
     /**
+     * The certificate id seems to be a 128-bit hex encoded string based on
+     * the DigiDoc documentation. This can be retrieved from the client
+     * via the JavaScript library. It's not sent via a regular SSL request.
+     *
      * @var string
      */
     private $id;
 
     /**
+     * Certificate signature can also be retrieved from the client using the
+     * JavaScript library. This one is also passed via a regular SSL request.
+     *
      * @var string
      */
-    private $certificate;
+    private $signature;
 
     /**
-     * @todo clarify the format of a certificate (e.g. an example)
-     *
-     * @param string $id          Referred to as "token id" in DigiDoc manual
-     * @param string $certificate The certificate in hex
+     * @param string $id        Referred to as "token id" in DigiDoc manual
+     * @param string $signature The (hex) signature
      */
-    public function __construct($id, $certificate)
+    public function __construct($id, $signature)
     {
         $this->id = $id;
-        $this->certificate = $certificate;
+        $this->signature = $signature;
     }
 
     /**
@@ -47,10 +52,13 @@ class Certificate
     }
 
     /**
+     * Gets the certificate signature. NB! This is not a signature of a
+     * digitally signed document.
+     *
      * @return string
      */
-    public function getCertificate()
+    public function getSignature()
     {
-        return $this->certificate;
+        return $this->signature;
     }
 }

@@ -12,70 +12,55 @@
 namespace KG\DigiDoc\Tests;
 
 use KG\DigiDoc\Signature;
+use KG\DigiDoc\Soap\Wsdl\SignatureInfo;
 
 class SignatureTest extends \PHPUnit_Framework_TestCase
 {
-    public function testNewSignatureIsUnsealed()
+    public function testSignatureCreatedFromSoapIsSealed()
     {
-        $signature = new Signature(
-            $this->getMockApi(),
-            $this->getMockCertificate(),
-            'F005B411',
-            'B45EBA11'
-        );
-
-        $this->assertFalse($signature->isSealed());
-    }
-
-    public function testCorrectSolutionSealsSignature()
-    {
-        $api = $this->getMockApi();
-        $api
-            ->expects($this->once())
-            ->method('finishSignature')
-            ->will($this->returnValue(true))
-        ;
-
-        $signature = new Signature($api, $this->getMockCertificate(), 'F005B411', 'B45EBA11');
-        $signature->seal('DEADBEEF');
+        $signature = Signature::createFromSoap($this->getMockSignatureInfo());
 
         $this->assertTrue($signature->isSealed());
     }
 
-    public function testIncorrectSolutionKeepsSignatureUnsealed()
+    public function testSignatureCreatedFromSoapHasId()
     {
-        $api = $this->getMockApi();
-        $api
-            ->expects($this->once())
-            ->method('finishSignature')
-            ->will($this->returnValue(false))
-        ;
+        $info = $this->getMockSignatureInfo();
+        $info->Id = 'S1';
 
-        $signature = new Signature($api, $this->getMockCertificate(), 'F005B411', 'B45EBA11');
-        $signature->seal('DEADBEEF');
+        $signature = Signature::createFromSoap($info);
+
+        $this->assertEquals($info->Id, $signature->getId());
+    }
+
+    public function testSignatureUnsealedByDefault()
+    {
+        $signature = new Signature($this->getMockCertificate());
 
         $this->assertFalse($signature->isSealed());
     }
 
-    /**
-     * @return \KG\DigiDoc\Api|PHPUnit_Framework_MockObject_MockObject
-     */
-    private function getMockApi()
+    public function testSealSealsSignature()
+    {
+        $signature = new Signature($this->getMockCertificate());
+        $signature->seal();
+
+        $this->assertTrue($signature->isSealed());
+    }
+
+    private function getMockCertificate()
     {
         return $this
-            ->getMockBuilder('KG\DigiDoc\Api')
+            ->getMockBuilder('KG\DigiDoc\Certificate')
             ->disableOriginalConstructor()
             ->getMock()
         ;
     }
 
-    /**
-     * @return \KG\DigiDoc\Certificate|PHPUnit_Framework_MockObject_MockObject
-     */
-    private function getMockCertificate()
+    private function getMockSignatureInfo()
     {
         return $this
-            ->getMockBuilder('KG\DigiDoc\Certificate')
+            ->getMockBuilder('KG\DigiDoc\Soap\Wsdl\SignatureInfo')
             ->disableOriginalConstructor()
             ->getMock()
         ;

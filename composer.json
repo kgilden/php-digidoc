@@ -15,7 +15,8 @@
         "php": ">=5.3.8",
         "ext-soap": "*",
         "symfony/http-foundation": "~2.0",
-        "ext-zip": "*"
+        "ext-zip": "*",
+        "doctrine/collections": "~1.0"
     },
     "require-dev": {
         "wsdl2phpgenerator/wsdl2phpgenerator": "~2.3"

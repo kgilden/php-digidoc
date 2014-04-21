@@ -13,12 +13,10 @@ namespace KG\DigiDoc;
 
 use KG\DigiDoc\Exception\ApiException;
 use KG\DigiDoc\Exception\RuntimeException;
-use Symfony\Component\HttpFoundation\File\File;
+use KG\DigiDoc\Collections\FileCollection;
+use KG\DigiDoc\Collections\SignatureCollection;
+use KG\DigiDoc\Soap\Wsdl\SignedDocInfo;
 
-/**
- * The central point through which all the communication with the DigiDoc
- * service flows.
- */
 class Api
 {
     const CONTENT_TYPE_HASHCODE = 'HASHCODE';
@@ -27,283 +25,251 @@ class Api
     const DOC_FORMAT = 'BDOC';
     const DOC_VERSION = '2.1';
 
-    const SOLUTION_LENGTH = 512;
-
     /**
      * @var \SoapClient
      */
     private $client;
 
     /**
-     * @var Session
+     * @var Encoder
      */
-    private $session;
+    private $encoder;
+
+    /**
+     * @var Tracker
+     */
+    private $tracker;
 
     /**
      * @param \SoapClient $client
+     * @param Encoder
      */
-    public function __construct(\SoapClient $client)
+    public function __construct(\SoapClient $client, Encoder $encoder, Tracker $tracker)
     {
         $this->client = $client;
+        $this->encoder = $encoder;
+        $this->tracker = $tracker;
     }
 
     /**
-     * Opens a new session with the DigiDoc service.
+     * Creates a new archive.
      *
-     * @param File|null $file
+     * @api
      *
-     * @throws ApiException If the response status is incorrect
+     * @return Archive
      */
-    public function openSession(File $file = null)
+    public function create()
     {
-        if ($this->isSessionOpened()) {
-            throw new ApiException(sprintf('The session is already opened (id %s)', $this->getSession()->getId()));
+        $result = $this->call('startSession', ['', '', true, '']);
+        $result = $this->call('createSignedDoc', [$sessionId = $result['Sesscode'], self::DOC_FORMAT, self::DOC_VERSION]);
+
+        $archive = new Archive(new Session($sessionId));
+
+        $this->tracker->track($archive);
+
+        return $archive;
+    }
+
+    /**
+     * Opens an archive on the local filesystem.
+     *
+     * @api
+     *
+     * @param string $path Path to the archive
+     *
+     * @return Archive
+     */
+    public function open($path)
+    {
+        $result = $this->call('startSession', ['', $this->encoder->encode($this->getFileContent($path)), true, '']);
+
+        $archive = new Archive(
+            new Session($result['Sesscode']),
+            new FileCollection($this->createAndTrack($result['SignedDocInfo']->DataFileInfo, 'KG\DigiDoc\File')),
+            new SignatureCollection($this->createAndTrack($result['SignedDocInfo']->SignatureInfo, 'KG\DigiDoc\Signature'))
+        );
+
+        $this->tracker->track($archive);
+
+        return $archive;
+    }
+
+    /**
+     * Closes the session between the local and remote systems of the given
+     * archive. This must be the last method called after all other
+     * transactions.
+     *
+     * @api
+     *
+     * @param Archive $archive
+     */
+    public function close(Archive $archive)
+    {
+        $this->call('closeSession', [$archive->getSession()->getId()]);
+    }
+
+    /**
+     * Updates the archive in the remote api to match the contents of the given
+     * archive. The following is done in the same order:
+     *
+     *  - new files uploaded;
+     *  - new signatures added and challenges injected;
+     *  - signatures with solutions to challenges sealed;
+     *
+     * @api
+     *
+     * @param Archive $archive
+     */
+    public function update(Archive $archive)
+    {
+        if (!$this->tracker->isTracked($archive)) {
+            throw new \Exception('not tracked');
         }
 
-        if ($file && file_exists($file)) {
-            $contents = $this->base64Encode($this->getFileContents($file));
-        } else {
-            $contents = '';
+        $session = $archive->getSession();
+
+        $this->addFiles($session, $this->tracker->filterUntracked($archive->getFiles()));
+        $this->addSignatures($session, $this->tracker->filterUntracked($archive->getSignatures()));
+        $this->sealSignatures($session, $archive->getSignatures()->getSealable());
+    }
+
+    /**
+     * Downloads the contents of the archive from the server and writes them
+     * to the given local path. If you modify an archive and call this method
+     * without prior updating, the changes will not be reflected in the written
+     * file.
+     *
+     * @api
+     *
+     * @param Archive $archive
+     * @param string  $path
+     */
+    public function write(Archive $archive, $path)
+    {
+        if (!$this->tracker->isTracked($archive)) {
+            throw new \Exception('not tracked');
         }
 
-        list(, $sessionId) = array_values($this->call('StartSession', array('', $contents, true, '')));
+        $result = $this->call('getSignedDoc', [$archive->getSession()->getId()]);
 
-        $this->session = new Session($sessionId);
+        file_put_contents($path, $this->encoder->decode($result['SignedDocData']));
     }
 
     /**
-     * @return boolean whether the session has been opened
+     * Merges the archive back with the api. This is necessary, when working
+     * with an archive over multiple requests and storing the archive somewhere
+     * (session, database etc) in the meantime.
+     *
+     * @param Archive $archive
      */
-    public function isSessionOpened()
+    public function merge(Archive $archive)
     {
-        return $this->session ? true : false;
-    }
-
-    /**
-     * Creates a new DigiDoc container.
-     *
-     * @throws ApiException If the response status is incorrect
-     */
-    public function createContainer()
-    {
-        $this->call('createSignedDoc', array($this->getSession()->getId(), self::DOC_FORMAT, self::DOC_VERSION));
-    }
-
-    /**
-     * Adds a new file to the given session
-     *
-     * @param File $file
-     */
-    public function addFile(File $file)
-    {
-        $this->call('addDataFile', $foo = array(
-            $this->getSession()->getId(),
-            $file->getFileName(),
-            $file->getMimeType(),
-            self::CONTENT_TYPE_EMBEDDED,
-            $file->getSize(),
-            '',
-            '',
-            $this->base64Encode($this->getFileContents($file)),
-        ));
-    }
-
-    /**
-     * @param Certificate $certificate
-     *
-     * @return Signature
-     */
-    public function createSignature(Certificate $certificate)
-    {
-        list(, $signatureId, $challenge) = array_values($this->call('prepareSignature', array(
-            $this->getSession()->getId(),
-            $certificate->getCertificate(),
-            $certificate->getId()
-        )));
-
-        return new Signature($this, $certificate, $signatureId, $challenge);
-    }
-
-    /**
-     * Finalizes the signature, effectively making it valid.
-     *
-     * @todo throw ApiException if the solution is too short BEFORE making the call.
-     *
-     * @param Signature $signature
-     * @param string    $solution
-     *
-     * @return boolean Whether the signature was successfully finished
-     */
-    public function finishSignature(Signature $signature, $solution)
-    {
-        if (self::SOLUTION_LENGTH !== strlen($solution)) {
-            throw new ApiException(sprintf('Solution length must be "%d", got "%d".', self::SOLUTION_LENGTH, strlen($solution)));
+        if ($this->tracker->isTracked($archive)) {
+            return;
         }
 
-        list(, $info) = array_values($this->call('finalizeSignature', array(
-            $this->getSession()->getId(),
-            $signature->getId(),
-            $solution,
-        )));
+        $this->tracker->track($archive);
+        $this->tracker->trackMultiple($archive->getFiles()->toArray());
+        $this->tracker->trackMultiple($archive->getSignatures()->toArray());
+    }
 
-        if ($this->isSignatureValid($signature, $info->SignatureInfo)) {
-            return true;
+    private function addFiles(Session $session, FileCollection $files)
+    {
+        foreach ($files as $file) {
+            $this->call('addDataFile', [
+                $session->getId(),
+                $file->getName(),
+                $file->getMimeType(),
+                self::CONTENT_TYPE_EMBEDDED,
+                $file->getSize(),
+                '',
+                '',
+                $this->encoder->encode($this->getFileContent($file->getPathname())),
+            ]);
+
+            $this->tracker->track($file);
         }
-
-        // Removes the added invalid signature to preserve atomicity.
-        $this->removeSignature($signature);
-
-        return false;
     }
 
-    /**
-     * Removes the given signature.
-     *
-     * @param Signature $signature
-     */
-    public function removeSignature(Signature $signature)
+    private function addSignatures(Session $session, SignatureCollection $signatures)
     {
-        $this->call('removeSignature', array($this->getSession(), $signature->getId()));
-    }
+        foreach ($signatures as $signature) {
+            $result = $this->call('prepareSignature', [$session->getId(), $signature->getCertificate()->getCertificate(), $signature->getCertificate()->getId()]);
 
-    /**
-     * Retrieves the contents of the opened file from the server.
-     *
-     * @return string
-     */
-    public function getContents()
-    {
-        list(, $contents) = array_values($this->call('getSignedDoc', array($this->getSession()->getId())));
+            $signature->setId($result['SignatureId']);
+            $signature->setChallenge($result['SignedInfoDigest']);
 
-        return $this->base64Decode($contents);
-    }
-
-    /**
-     * Closes the given session with the DigiDoc service.
-     */
-    public function closeSession()
-    {
-        $this->call('closeSession', array($this->getSession()->getId()));
-
-        $this->session = null;
-    }
-
-    /**
-     * Makes the actual call to the client and does initial status check.
-     *
-     * @param string $method
-     * @param array  $arguments
-     *
-     * @return array
-     *
-     * @throws ApiException If the status is not "OK"
-     */
-    protected function call($method, array $arguments)
-    {
-        $result = $this->client->__soapCall(ucfirst($method), $arguments);
-
-        if ('OK' !== $result['Status']) {
-            throw ApiException::createIncorrectStatus($result['Status']);
+            $this->tracker->track($signature);
         }
-
-        return $result;
     }
 
-    /**
-     * @return Session
-     *
-     * @throws ApiException If the session is not opened
-     */
-    protected function getSession()
+    private function sealSignatures(Session $session, SignatureCollection $signatures)
     {
-        if (!$this->isSessionOpened()) {
-            throw new ApiException('You must open a session before making any subsequent requests.');
-        }
+        foreach ($signatures as $signature) {
+            $result = $this->call('finalizeSignature', [$session->getId(), $signature->getId(), $signature->getSolution()]);
 
-        return $this->session;
+            $signature->seal();
+        }
     }
 
-    /**
-     * Checks whether the signature with the given signature id is valid.
-     *
-     * @param Signature    $signature
-     * @param array|object $signatures
-     *
-     * @return boolean
-     */
-    private function isSignatureValid(Signature $signature, $signatures)
+    private function getById($remoteObjects, $id)
     {
-        if (!is_array($signatures)) {
-            $signatures = array($signatures);
-        }
+        $remoteObjects = !is_array($remoteObjects) ? [$remoteObjects] : $remoteObjects;
 
-        foreach ($signatures as $addedSignature) {
-            if ($addedSignature->Id === $signature->getId()) {
-                return 'OK' === $addedSignature->Status;
+        foreach ($remoteObjects as $remoteObject) {
+            if ($remoteObject->Id === $id) {
+                return $remoteObject;
             }
         }
 
-        return false;
+        throw new RuntimeException(sprintf('No remote object with id "%s" was not found.', $id));
+    }
+
+    private function createAndTrack($remoteObjects, $class)
+    {
+        if (is_null($remoteObjects)) {
+            return [];
+        }
+
+        $remoteObjects = !is_array($remoteObjects) ? [$remoteObjects] : $remoteObjects;
+
+        $objects = [];
+
+        foreach ($remoteObjects as $remoteObject) {
+            $objects[] = $object = $class::createFromSoap($remoteObject);
+
+            $this->tracker->track($object);
+        }
+
+
+        return $objects;
+    }
+
+    private function call($method, array $arguments)
+    {
+        return $this->client->__soapCall(ucfirst($method), $arguments);
     }
 
     /**
-     * Gets the contents of the file.
+     * Gets the file content.
      *
-     * @todo This is almost a duplicate of FileContainer::getContents(),
-     *       refactor this out.
+     * @todo Refactor this out to some other class
      *
-     * @param File $file
+     * @param string $pathToFile
      *
      * @return string
      */
-    private function getFileContents(File $file)
+    private function getFileContent($pathToFile)
     {
         $level = error_reporting(0);
-        $contents = file_get_contents($file->getPathname());
+        $content = file_get_contents($pathToFile);
         error_reporting($level);
 
-        if (false === $contents) {
+        if (false === $content) {
             $error = error_get_last();
             throw new RuntimeException($error['message']);
         }
 
-        return $contents;
-    }
-
-    /**
-     * Base64 encodes a string to the required format - split into 64 bytes
-     * delimited by newline characters.
-     *
-     * @param string $data
-     *
-     * @return string
-     */
-    private function base64Encode($data)
-    {
-        return chunk_split(base64_encode($data), 64, "\n");
-    }
-
-
-    /**
-     * Decodes a piece of data from base64. The encoded data may be either
-     * a long string in base64 or delimited by newline characters.
-     *
-     * @param string $data The encoded data
-     *
-     * @return string
-     */
-    private function base64Decode($data)
-    {
-        $decoded    = '';
-        $delimiters = "\n";
-        $token      = strtok($data, $delimiters);
-
-        while (false !== $token) {
-            $decoded .= base64_decode($token);
-
-            $token = strtok($delimiters);
-        }
-
-        return $decoded;
+        return $content;
     }
 }
