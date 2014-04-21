@@ -122,9 +122,7 @@ class Api
      */
     public function update(Archive $archive)
     {
-        if (!$this->tracker->isTracked($archive)) {
-            throw new \Exception('not tracked');
-        }
+        $this->failIfNotMerged($archive);
 
         $session = $archive->getSession();
 
@@ -146,9 +144,7 @@ class Api
      */
     public function write(Archive $archive, $path)
     {
-        if (!$this->tracker->isTracked($archive)) {
-            throw new \Exception('not tracked');
-        }
+        $this->failIfNotMerged($archive);
 
         $result = $this->call('getSignedDoc', [$archive->getSession()->getId()]);
 
@@ -248,6 +244,18 @@ class Api
     private function call($method, array $arguments)
     {
         return $this->client->__soapCall(ucfirst($method), $arguments);
+    }
+
+    /**
+     * @param Archive $archive
+     *
+     * @throws ApiException If the archive is not merged
+     */
+    private function failIfNotMerged(Archive $archive)
+    {
+        if (!$this->tracker->isTracked($archive)) {
+            throw ApiException::createNotTracked($archive);
+        }
     }
 
     /**

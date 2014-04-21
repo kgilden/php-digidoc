@@ -91,4 +91,19 @@ class ApiException extends DigiDocException
 
         return new static(sprintf($message, $status), null, $e);
     }
+
+    /**
+     * Creates a new ApiException for non-merged archives.
+     *
+     * @param Archive         $archive
+     * @param \Exception|null $e
+     *
+     * @return ApiException
+     */
+    public static function createNotMerged(Archive $archive, \Exception $e = null)
+    {
+        $message = 'The given archive must be merged with Api (using Api::merge) before calling this method.';
+
+        return new static($message, null, $e);
+    }
 }
