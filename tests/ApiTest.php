@@ -59,7 +59,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->open($path = $this->createFileWithContent('foobar'));
+        $archive = $api->open('/path/to/file.bdoc');
 
         $this->assertInstanceOf('KG\DigiDoc\Archive', $archive);
         $this->assertEquals($sessionId, $archive->getSession()->getId());
@@ -89,7 +89,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->open($path = $this->createFileWithContent('foobar'));
+        $archive = $api->open('/path/to/file.bdoc');
         $file = $archive->getFiles()->first();
 
         $this->assertSame($fileInfo->Id, $file->getId());
@@ -119,7 +119,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->open($path = $this->createFileWithContent('foobar'));
+        $archive = $api->open('/path/to/file.bdoc');
         $signature = $archive->getSignatures()->first();
 
         $this->assertSame($signatureInfo->Id, $signature->getId());

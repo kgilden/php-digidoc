@@ -81,7 +81,7 @@ class Api
      */
     public function open($path)
     {
-        $result = $this->call('startSession', ['', $this->encoder->encode($this->getFileContent($path)), true, '']);
+        $result = $this->call('startSession', ['', $this->encoder->encodeFileContent($path), true, '']);
 
         $archive = new Archive(
             new Session($result['Sesscode']),
@@ -180,7 +180,7 @@ class Api
                 $file->getSize(),
                 '',
                 '',
-                $this->encoder->encode($this->getFileContent($file->getPathname())),
+                $this->encoder->encodeFileContent($file->getPathname()),
             ]);
 
             $this->tracker->track($file);
@@ -256,28 +256,5 @@ class Api
         if (!$this->tracker->isTracked($archive)) {
             throw ApiException::createNotTracked($archive);
         }
-    }
-
-    /**
-     * Gets the file content.
-     *
-     * @todo Refactor this out to some other class
-     *
-     * @param string $pathToFile
-     *
-     * @return string
-     */
-    private function getFileContent($pathToFile)
-    {
-        $level = error_reporting(0);
-        $content = file_get_contents($pathToFile);
-        error_reporting($level);
-
-        if (false === $content) {
-            $error = error_get_last();
-            throw new RuntimeException($error['message']);
-        }
-
-        return $content;
     }
 }
