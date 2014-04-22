@@ -23,7 +23,7 @@ class Tracker
         $objects = is_array($objects) ? $objects : [$objects];
 
         foreach ($objects as $object) {
-            if ($this->isTracked($object)) {
+            if ($this->has($object)) {
                 continue;
             }
 
