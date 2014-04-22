@@ -65,7 +65,7 @@ class Api
 
         $archive = new Archive(new Session($sessionId));
 
-        $this->tracker->track($archive);
+        $this->tracker->add($archive);
 
         return $archive;
     }
@@ -89,7 +89,7 @@ class Api
             new SignatureCollection($this->createAndTrack($result['SignedDocInfo']->SignatureInfo, 'KG\DigiDoc\Signature'))
         );
 
-        $this->tracker->track($archive);
+        $this->tracker->add($archive);
 
         return $archive;
     }
@@ -125,10 +125,17 @@ class Api
         $this->failIfNotMerged($archive);
 
         $session = $archive->getSession();
+        $tracker = $this->tracker;
 
-        $this->addFiles($session, $this->tracker->filterUntracked($archive->getFiles()));
-        $this->addSignatures($session, $this->tracker->filterUntracked($archive->getSignatures()));
-        $this->sealSignatures($session, $archive->getSignatures()->getSealable());
+        $untrackedFn = function ($object) use ($tracker) {
+            return !$tracker->has($object);
+        };
+
+        $this
+            ->addFiles($session, $archive->getFiles()->filter($untrackedFn))
+            ->addSignatures($session, $archive->getSignatures()->filter($untrackedFn))
+            ->sealSignatures($session, $archive->getSignatures()->getSealable())
+        ;
     }
 
     /**
@@ -160,13 +167,13 @@ class Api
      */
     public function merge(Archive $archive)
     {
-        if ($this->tracker->isTracked($archive)) {
+        if ($this->tracker->has($archive)) {
             return;
         }
 
-        $this->tracker->track($archive);
-        $this->tracker->trackMultiple($archive->getFiles()->toArray());
-        $this->tracker->trackMultiple($archive->getSignatures()->toArray());
+        $this->tracker->add($archive);
+        $this->tracker->add($archive->getFiles()->toArray());
+        $this->tracker->add($archive->getSignatures()->toArray());
     }
 
     private function addFiles(Session $session, FileCollection $files)
@@ -183,8 +190,10 @@ class Api
                 $this->encoder->encodeFileContent($file->getPathname()),
             ]);
 
-            $this->tracker->track($file);
+            $this->tracker->add($file);
         }
+
+        return $this;
     }
 
     private function addSignatures(Session $session, SignatureCollection $signatures)
@@ -195,8 +204,10 @@ class Api
             $signature->setId($result['SignatureId']);
             $signature->setChallenge($result['SignedInfoDigest']);
 
-            $this->tracker->track($signature);
+            $this->tracker->add($signature);
         }
+
+        return $this;
     }
 
     private function sealSignatures(Session $session, SignatureCollection $signatures)
@@ -206,6 +217,8 @@ class Api
 
             $signature->seal();
         }
+
+        return $this;
     }
 
     private function getById($remoteObjects, $id)
@@ -234,7 +247,7 @@ class Api
         foreach ($remoteObjects as $remoteObject) {
             $objects[] = $object = $class::createFromSoap($remoteObject);
 
-            $this->tracker->track($object);
+            $this->tracker->add($object);
         }
 
 
@@ -253,7 +266,7 @@ class Api
      */
     private function failIfNotMerged(Archive $archive)
     {
-        if (!$this->tracker->isTracked($archive)) {
+        if (!$this->tracker->has($archive)) {
             throw ApiException::createNotTracked($archive);
         }
     }

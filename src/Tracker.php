@@ -18,42 +18,20 @@ class Tracker
 {
     protected $objects = [];
 
-    public function track($object)
+    public function add($objects)
     {
-        if ($this->isTracked($object)) {
-            return;
-        }
+        $objects = is_array($objects) ? $objects : [$objects];
 
-        $this->objects[] = $object;
-    }
-
-    public function trackMultiple(array $objects)
-    {
         foreach ($objects as $object) {
-            $this->track($object);
+            if ($this->isTracked($object)) {
+                continue;
+            }
+
+            $this->objects[] = $object;
         }
     }
 
-    public function filterUntracked($objects)
-    {
-        $tracker = $this;
-
-        $filterFn = function ($object) use ($tracker) {
-            return !$tracker->isTracked($object);
-        };
-
-        if ($objects instanceof Collection) {
-            return $objects->filter($filterFn);
-        }
-
-        if (is_array($objects)) {
-            return array_filter($objects, $filterFn);
-        }
-
-        throw new UnexpectedTypeException('Doctrine\Common\Collections\Collection" or "array', $objects);
-    }
-
-    public function isTracked($object)
+    public function has($object)
     {
         return in_array($object, $this->objects);
     }
