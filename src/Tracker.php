@@ -18,6 +18,12 @@ class Tracker
 {
     protected $objects = [];
 
+    /**
+     * Adds the given objects to the tracker. You can pass either a single
+     * object or an array of objects.
+     *
+     * @param object|object[] $objects
+     */
     public function add($objects)
     {
         $objects = is_array($objects) ? $objects : [$objects];
@@ -31,6 +37,11 @@ class Tracker
         }
     }
 
+    /**
+     * @param object $object
+     *
+     * @return boolean Whether the tracker is tracking this object
+     */
     public function has($object)
     {
         return in_array($object, $this->objects);
