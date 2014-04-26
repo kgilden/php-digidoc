@@ -55,8 +55,8 @@ class Api implements ApiInterface
      */
     public function create()
     {
-        $result = $this->call('startSession', ['', '', true, '']);
-        $result = $this->call('createSignedDoc', [$sessionId = $result['Sesscode'], self::DOC_FORMAT, self::DOC_VERSION]);
+        $result = $this->call('startSession', array('', '', true, ''));
+        $result = $this->call('createSignedDoc', array($sessionId = $result['Sesscode'], self::DOC_FORMAT, self::DOC_VERSION));
 
         $container = new Container(new Session($sessionId));
 
@@ -70,7 +70,7 @@ class Api implements ApiInterface
      */
     public function open($path)
     {
-        $result = $this->call('startSession', ['', $this->encoder->encodeFileContent($path), true, '']);
+        $result = $this->call('startSession', array('', $this->encoder->encodeFileContent($path), true, ''));
 
         $container = new Container(
             new Session($result['Sesscode']),
@@ -88,7 +88,7 @@ class Api implements ApiInterface
      */
     public function close(Container $container)
     {
-        $this->call('closeSession', [$container->getSession()->getId()]);
+        $this->call('closeSession', array($container->getSession()->getId()));
     }
 
     /**
@@ -115,7 +115,7 @@ class Api implements ApiInterface
     {
         $this->failIfNotMerged($container);
 
-        $result = $this->call('getSignedDoc', [$container->getSession()->getId()]);
+        $result = $this->call('getSignedDoc', array($container->getSession()->getId()));
 
         file_put_contents($path, $this->encoder->decode($result['SignedDocData']));
     }
@@ -137,7 +137,7 @@ class Api implements ApiInterface
     private function addFiles(Session $session, $files)
     {
         foreach ($files as $file) {
-            $this->call('addDataFile', [
+            $this->call('addDataFile', array(
                 $session->getId(),
                 $file->getName(),
                 $file->getMimeType(),
@@ -146,7 +146,7 @@ class Api implements ApiInterface
                 '',
                 '',
                 $this->encoder->encodeFileContent($file->getPathname()),
-            ]);
+            ));
 
             $this->tracker->add($file);
         }
@@ -162,7 +162,7 @@ class Api implements ApiInterface
                 continue;
             }
 
-            $result = $this->call('prepareSignature', [$session->getId(), $signature->getCertificate()->getSignature(), $signature->getCertificate()->getId()]);
+            $result = $this->call('prepareSignature', array($session->getId(), $signature->getCertificate()->getSignature(), $signature->getCertificate()->getId()));
 
             $signature->setId($result['SignatureId']);
             $signature->setChallenge($result['SignedInfoDigest']);
@@ -186,7 +186,7 @@ class Api implements ApiInterface
                 continue;
             }
 
-            $result = $this->call('finalizeSignature', [$session->getId(), $signature->getId(), $signature->getSolution()]);
+            $result = $this->call('finalizeSignature', array($session->getId(), $signature->getId(), $signature->getSolution()));
 
             $signature->seal();
         }
@@ -196,7 +196,7 @@ class Api implements ApiInterface
 
     private function getById($remoteObjects, $id)
     {
-        $remoteObjects = !is_array($remoteObjects) ? [$remoteObjects] : $remoteObjects;
+        $remoteObjects = !is_array($remoteObjects) ? array($remoteObjects) : $remoteObjects;
 
         foreach ($remoteObjects as $remoteObject) {
             if ($remoteObject->Id === $id) {
@@ -210,12 +210,12 @@ class Api implements ApiInterface
     private function createAndTrack($remoteObjects, $class)
     {
         if (is_null($remoteObjects)) {
-            return [];
+            return array();
         }
 
-        $remoteObjects = !is_array($remoteObjects) ? [$remoteObjects] : $remoteObjects;
+        $remoteObjects = !is_array($remoteObjects) ? array($remoteObjects) : $remoteObjects;
 
-        $objects = [];
+        $objects = array();
 
         foreach ($remoteObjects as $remoteObject) {
             $objects[] = $object = $class::createFromSoap($remoteObject);

@@ -37,7 +37,7 @@ class Container
      * @param File[]      $files
      * @param Signature[] $signatures
      */
-    public function __construct(Session $session, $files = [], $signatures = [])
+    public function __construct(Session $session, $files = array(), $signatures = array())
     {
         $this->session = $session;
         $this->files = $files instanceof Collection ? $files : new ArrayCollection($files);

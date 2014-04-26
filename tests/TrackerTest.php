@@ -26,10 +26,10 @@ class TrackeTest extends \PHPUnit_Framework_TestCase
     public function testAddArrayAddsChildren()
     {
         $tracker = new Tracker();
-        $tracker->add($array = [
+        $tracker->add($array = array(
             $objectA = new \stdClass(),
             $objectB = new \stdClass(),
-        ]);
+        ));
 
         $this->assertTrue($tracker->has($objectA));
         $this->assertTrue($tracker->has($objectB));

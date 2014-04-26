@@ -18,7 +18,7 @@ use KG\DigiDoc\Exception\ApiException;
  */
 class Client extends \SoapClient
 {
-    private static $classmap = [
+    private static $classmap = array(
         'DataFileAttribute' => '\KG\DigiDoc\Soap\Wsdl\DataFileAttribute',
         'DataFileInfo' => '\KG\DigiDoc\Soap\Wsdl\DataFileInfo',
         'SignerRole' => '\KG\DigiDoc\Soap\Wsdl\SignerRole',
@@ -38,7 +38,7 @@ class Client extends \SoapClient
         'SignatureModulesArray' => '\KG\DigiDoc\Soap\Wsdl\SignatureModulesArray',
         'DataFileDigest' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigest',
         'DataFileDigestList' => '\KG\DigiDoc\Soap\Wsdl\DataFileDigestList',
-    ];
+    );
 
     /**
      * @param array  $options
@@ -47,7 +47,7 @@ class Client extends \SoapClient
     public function __construct(array $options = array(), $wsdl = 'https://www.openxades.org:9443/?wsdl')
     {
         if (!isset($options['classmap'])) {
-            $options['classmap'] = [];
+            $options['classmap'] = array();
         }
 
         $options['classmap'] = array_merge(self::$classmap, $options['classmap']);

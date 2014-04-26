@@ -16,7 +16,7 @@ use KG\DigiDoc\Exception\UnexpectedTypeException;
 
 class Tracker
 {
-    protected $objects = [];
+    protected $objects = array();
 
     /**
      * Adds the given objects to the tracker. You can pass either a single
@@ -26,7 +26,7 @@ class Tracker
      */
     public function add($objects)
     {
-        $objects = is_array($objects) ? $objects : [$objects];
+        $objects = is_array($objects) ? $objects : array($objects);
 
         foreach ($objects as $object) {
             if ($this->has($object)) {

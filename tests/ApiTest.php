@@ -45,11 +45,11 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('__soapCall')
             ->with('StartSession', $this->anything())
-            ->will($this->returnValue([
+            ->will($this->returnValue(array(
                 'Status'        => 'OK',
                 'Sesscode'      => $sessionId = 42,
                 'SignedDocInfo' => $info,
-            ]))
+            )))
         ;
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
@@ -75,11 +75,11 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('__soapCall')
             ->with('StartSession', $this->anything())
-            ->will($this->returnValue([
+            ->will($this->returnValue(array(
                 'Status'        => 'OK',
                 'Sesscode'      => $sessionId = 42,
                 'SignedDocInfo' => $info,
-            ]))
+            )))
         ;
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
@@ -105,11 +105,11 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('__soapCall')
             ->with('StartSession', $this->anything())
-            ->will($this->returnValue([
+            ->will($this->returnValue(array(
                 'Status'        => 'OK',
                 'Sesscode'      => $sessionId = 42,
                 'SignedDocInfo' => $info,
-            ]))
+            )))
         ;
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
@@ -143,7 +143,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $client
             ->expects($this->once())
             ->method('__soapCall')
-            ->with('CloseSession', [$sessionId])
+            ->with('CloseSession', array($sessionId))
         ;
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
@@ -259,7 +259,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->expects($this->at(0))
             ->method('__soapCall')
             ->with('StartSession')
-            ->will($this->returnValue(['Sesscode' => $sessionId]))
+            ->will($this->returnValue(array('Sesscode' => $sessionId)))
         ;
     }
 }
