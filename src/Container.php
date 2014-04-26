@@ -12,18 +12,17 @@
 namespace KG\DigiDoc;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use KG\DigiDoc\Collections\FileCollection;
-use KG\DigiDoc\Collections\SignatureCollection;
+use Doctrine\Common\Collections\Collection;
 
 class Container
 {
     /**
-     * @var ArrayCollection
+     * @var \Doctrine\Common\Collections\Collection
      */
     private $files;
 
     /**
-     * @var ArrayCollection
+     * @var \Doctrine\Common\Collections\Collection
      */
     private $signatures;
 
@@ -33,15 +32,15 @@ class Container
     private $session;
 
     /**
-     * @param Session                  $session
-     * @param FileCollection|null      $files
-     * @param SignatureCollection|null $signatures
+     * @param Session     $session
+     * @param File[]      $files
+     * @param Signature[] $signatures
      */
-    public function __construct(Session $session, FileCollection $files = null, SignatureCollection $signatures = null)
+    public function __construct(Session $session, $files = [], $signatures = [])
     {
         $this->session = $session;
-        $this->files = $files ?: new FileCollection();
-        $this->signatures = $signatures ?: new SignatureCollection();
+        $this->files = $files instanceof Collection ? $files : new ArrayCollection($files);
+        $this->signatures = $signatures instanceof Collection ? $signatures : new ArrayCollection($signatures);
     }
 
     /**
@@ -53,7 +52,7 @@ class Container
     }
 
     /**
-     * @return FileCollection
+     * @return Collection
      */
     public function getFiles()
     {
@@ -61,7 +60,7 @@ class Container
     }
 
     /**
-     * @return SignatureCollection
+     * @return Collection
      */
     public function getSignatures()
     {

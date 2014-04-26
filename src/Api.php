@@ -13,8 +13,6 @@ namespace KG\DigiDoc;
 
 use KG\DigiDoc\Exception\ApiException;
 use KG\DigiDoc\Exception\RuntimeException;
-use KG\DigiDoc\Collections\FileCollection;
-use KG\DigiDoc\Collections\SignatureCollection;
 use KG\DigiDoc\Soap\Wsdl\SignedDocInfo;
 
 class Api implements ApiInterface
@@ -76,8 +74,8 @@ class Api implements ApiInterface
 
         $container = new Container(
             new Session($result['Sesscode']),
-            new FileCollection($this->createAndTrack($result['SignedDocInfo']->DataFileInfo, 'KG\DigiDoc\File')),
-            new SignatureCollection($this->createAndTrack($result['SignedDocInfo']->SignatureInfo, 'KG\DigiDoc\Signature'))
+            $this->createAndTrack($result['SignedDocInfo']->DataFileInfo, 'KG\DigiDoc\File'),
+            $this->createAndTrack($result['SignedDocInfo']->SignatureInfo, 'KG\DigiDoc\Signature')
         );
 
         $this->tracker->add($container);
@@ -103,14 +101,10 @@ class Api implements ApiInterface
         $session = $container->getSession();
         $tracker = $this->tracker;
 
-        $untrackedFn = function ($object) use ($tracker) {
-            return !$tracker->has($object);
-        };
-
         $this
             ->addFiles($session, $container->getFiles()->filter($untrackedFn))
-            ->addSignatures($session, $container->getSignatures()->filter($untrackedFn))
-            ->sealSignatures($session, $container->getSignatures()->getSealable())
+            ->addSignatures($session, $container->getSignatures())
+            ->sealSignatures($session, $container->getSignatures())
         ;
     }
 
@@ -140,7 +134,7 @@ class Api implements ApiInterface
         $this->tracker->add($container->getSignatures()->toArray());
     }
 
-    private function addFiles(Session $session, FileCollection $files)
+    private function addFiles(Session $session, $files)
     {
         foreach ($files as $file) {
             $this->call('addDataFile', [
@@ -160,9 +154,14 @@ class Api implements ApiInterface
         return $this;
     }
 
-    private function addSignatures(Session $session, SignatureCollection $signatures)
+    private function addSignatures(Session $session, $signatures)
     {
         foreach ($signatures as $signature) {
+            // Skips already tracked objects, because they're already added.
+            if ($tracker->has($object)) {
+                continue;
+            }
+
             $result = $this->call('prepareSignature', [$session->getId(), $signature->getCertificate()->getSignature(), $signature->getCertificate()->getId()]);
 
             $signature->setId($result['SignatureId']);
@@ -174,9 +173,19 @@ class Api implements ApiInterface
         return $this;
     }
 
-    private function sealSignatures(Session $session, SignatureCollection $signatures)
+    private function sealSignatures(Session $session, $signatures)
     {
         foreach ($signatures as $signature) {
+            // Skips already sealed signatures.
+            if ($signature->isSealed()) {
+                continue;
+            }
+
+            // Skips signatures without a solution.
+            if (!$signature->getSolution()) {
+                continue;
+            }
+
             $result = $this->call('finalizeSignature', [$session->getId(), $signature->getId(), $signature->getSolution()]);
 
             $signature->seal();
