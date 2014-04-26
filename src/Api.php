@@ -199,7 +199,7 @@ class Api
     private function addSignatures(Session $session, SignatureCollection $signatures)
     {
         foreach ($signatures as $signature) {
-            $result = $this->call('prepareSignature', [$session->getId(), $signature->getCertificate()->getCertificate(), $signature->getCertificate()->getId()]);
+            $result = $this->call('prepareSignature', [$session->getId(), $signature->getCertificate()->getSignature(), $signature->getCertificate()->getId()]);
 
             $signature->setId($result['SignatureId']);
             $signature->setChallenge($result['SignedInfoDigest']);
