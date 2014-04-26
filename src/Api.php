@@ -41,14 +41,15 @@ class Api implements ApiInterface
     private $tracker;
 
     /**
-     * @param \SoapClient $client
-     * @param Encoder
+     * @param \SoapClient  $client
+     * @param Encoder|null $encoder
+     * @param Tracker|null $tracker
      */
-    public function __construct(\SoapClient $client, Encoder $encoder, Tracker $tracker)
+    public function __construct(\SoapClient $client, Encoder $encoder = null, Tracker $tracker = null)
     {
         $this->client = $client;
-        $this->encoder = $encoder;
-        $this->tracker = $tracker;
+        $this->encoder = $encoder ?: new Encoder();
+        $this->tracker = $tracker ?: new Tracker();
     }
 
     /**
