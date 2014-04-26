@@ -162,7 +162,7 @@ class Api implements ApiInterface
                 continue;
             }
 
-            $result = $this->call('prepareSignature', array($session->getId(), $signature->getCertificate()->getSignature(), $signature->getCertificate()->getId()));
+            $result = $this->call('prepareSignature', array($session->getId(), $signature->getCertSignature(), $signature->getCertId()));
 
             $signature->setId($result['SignatureId']);
             $signature->setChallenge($result['SignedInfoDigest']);

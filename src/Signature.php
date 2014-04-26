@@ -21,9 +21,21 @@ class Signature
     private $id;
 
     /**
-     * @var Certificate|null
+     * The certificate id seems to be a 128-bit hex encoded string based on
+     * the DigiDoc documentation. This can be retrieved from the client
+     * via the JavaScript library. It's not sent via a regular SSL request.
+     *
+     * @var string
      */
-    private $certificate;
+    private $certId;
+
+    /**
+     * Certificate signature can also be retrieved from the client using the
+     * JavaScript library. This one is also passed via a regular SSL request.
+     *
+     * @var string
+     */
+    private $certSignature;
 
     /**
      * @var string
@@ -41,11 +53,13 @@ class Signature
     private $sealed = false;
 
     /**
-     * @param Certificate $certificate
+     * @param string $certId        128-bit hex encoded certificate id
+     * @param string $certSignature The actual hex encoded certificate signature
      */
-    public function __construct(Certificate $certificate)
+    public function __construct($certId = null, $certSignature = null)
     {
-        $this->certificate = $certificate;
+        $this->certId = $certId;
+        $this->certSignature = $certSignature;
     }
 
     /**
@@ -59,9 +73,7 @@ class Signature
      */
     public static function createFromSoap(SignatureInfo $info)
     {
-        $refl = new \ReflectionClass(get_called_class());
-
-        $signature = $refl->newInstanceWithoutConstructor();
+        $signature = new static();
         $signature->id = $info->Id;
         $signature->seal();
 
@@ -97,16 +109,28 @@ class Signature
     }
 
     /**
-     * Gets the person's certificate. This most likely returns null, when an
-     * existing DigiDoc container is opened.
+     * Gets the person's certificate id. Not sure what it actually is.
+     *
+     * @todo clarify
      *
      * @api
      *
-     * @return Certificate|null
+     * @return string|null A hex encoded certificate id
      */
-    public function getCertificate()
+    public function getCertId()
     {
-        return $this->certificate;
+        return $this->certId;
+    }
+
+    /**
+     * Gets the certificate signature. NB! This is not a signature of a
+     * digitally signed document. It's the actual signature verifying the client.
+     *
+     * @return string|null A hex encoded signature
+     */
+    public function getCertSignature()
+    {
+        return $this->certSignature;
     }
 
     /**
