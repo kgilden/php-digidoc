@@ -93,16 +93,16 @@ class ApiException extends DigiDocException
     }
 
     /**
-     * Creates a new ApiException for non-merged archives.
+     * Creates a new ApiException for non-merged DigiDoc containers.
      *
-     * @param Archive         $archive
+     * @param Container       $container
      * @param \Exception|null $e
      *
      * @return ApiException
      */
-    public static function createNotMerged(Archive $archive, \Exception $e = null)
+    public static function createNotMerged(Container $contaienr, \Exception $e = null)
     {
-        $message = 'The given archive must be merged with Api (using Api::merge) before calling this method.';
+        $message = 'The given DigiDoc container must be merged with Api (using Api::merge) before calling this method.';
 
         return new static($message, null, $e);
     }

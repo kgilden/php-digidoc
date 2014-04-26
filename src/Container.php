@@ -15,7 +15,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use KG\DigiDoc\Collections\FileCollection;
 use KG\DigiDoc\Collections\SignatureCollection;
 
-class Archive
+class Container
 {
     /**
      * @var ArrayCollection

@@ -98,7 +98,7 @@ class Signature
 
     /**
      * Gets the person's certificate. This most likely returns null, when an
-     * existing archive is opened.
+     * existing DigiDoc container is opened.
      *
      * @api
      *

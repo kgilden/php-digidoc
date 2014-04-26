@@ -52,65 +52,65 @@ class Api
     }
 
     /**
-     * Creates a new archive.
+     * Creates a DigiDoc container.
      *
      * @api
      *
-     * @return Archive
+     * @return Container
      */
     public function create()
     {
         $result = $this->call('startSession', ['', '', true, '']);
         $result = $this->call('createSignedDoc', [$sessionId = $result['Sesscode'], self::DOC_FORMAT, self::DOC_VERSION]);
 
-        $archive = new Archive(new Session($sessionId));
+        $container = new Container(new Session($sessionId));
 
-        $this->tracker->add($archive);
+        $this->tracker->add($container);
 
-        return $archive;
+        return $container;
     }
 
     /**
-     * Opens an archive on the local filesystem.
+     * Opens a DigiDoc container on the local filesystem.
      *
      * @api
      *
-     * @param string $path Path to the archive
+     * @param string $path Path to the DigiDoc container
      *
-     * @return Archive
+     * @return Container
      */
     public function open($path)
     {
         $result = $this->call('startSession', ['', $this->encoder->encodeFileContent($path), true, '']);
 
-        $archive = new Archive(
+        $container = new Container(
             new Session($result['Sesscode']),
             new FileCollection($this->createAndTrack($result['SignedDocInfo']->DataFileInfo, 'KG\DigiDoc\File')),
             new SignatureCollection($this->createAndTrack($result['SignedDocInfo']->SignatureInfo, 'KG\DigiDoc\Signature'))
         );
 
-        $this->tracker->add($archive);
+        $this->tracker->add($container);
 
-        return $archive;
+        return $container;
     }
 
     /**
      * Closes the session between the local and remote systems of the given
-     * archive. This must be the last method called after all other
+     * DigiDoc container. This must be the last method called after all other
      * transactions.
      *
      * @api
      *
-     * @param Archive $archive
+     * @param Container $container
      */
-    public function close(Archive $archive)
+    public function close(Container $container)
     {
-        $this->call('closeSession', [$archive->getSession()->getId()]);
+        $this->call('closeSession', [$container->getSession()->getId()]);
     }
 
     /**
-     * Updates the archive in the remote api to match the contents of the given
-     * archive. The following is done in the same order:
+     * Updates the state in the remote api to match the contents of the given
+     * DigiDoc container. The following is done in the same order:
      *
      *  - new files uploaded;
      *  - new signatures added and challenges injected;
@@ -118,13 +118,13 @@ class Api
      *
      * @api
      *
-     * @param Archive $archive
+     * @param Container $container
      */
-    public function update(Archive $archive)
+    public function update(Container $container)
     {
-        $this->failIfNotMerged($archive);
+        $this->failIfNotMerged($container);
 
-        $session = $archive->getSession();
+        $session = $container->getSession();
         $tracker = $this->tracker;
 
         $untrackedFn = function ($object) use ($tracker) {
@@ -132,48 +132,48 @@ class Api
         };
 
         $this
-            ->addFiles($session, $archive->getFiles()->filter($untrackedFn))
-            ->addSignatures($session, $archive->getSignatures()->filter($untrackedFn))
-            ->sealSignatures($session, $archive->getSignatures()->getSealable())
+            ->addFiles($session, $container->getFiles()->filter($untrackedFn))
+            ->addSignatures($session, $container->getSignatures()->filter($untrackedFn))
+            ->sealSignatures($session, $container->getSignatures()->getSealable())
         ;
     }
 
     /**
-     * Downloads the contents of the archive from the server and writes them
-     * to the given local path. If you modify an archive and call this method
-     * without prior updating, the changes will not be reflected in the written
-     * file.
+     * Downloads the contents of the DigiDoc container from the server and
+     * writes them to the given local path. If you modify a container and call
+     * this method without prior updating, the changes will not be reflected
+     * in the written file.
      *
      * @api
      *
-     * @param Archive $archive
+     * @param Container $container
      * @param string  $path
      */
-    public function write(Archive $archive, $path)
+    public function write(Container $container, $path)
     {
-        $this->failIfNotMerged($archive);
+        $this->failIfNotMerged($container);
 
-        $result = $this->call('getSignedDoc', [$archive->getSession()->getId()]);
+        $result = $this->call('getSignedDoc', [$container->getSession()->getId()]);
 
         file_put_contents($path, $this->encoder->decode($result['SignedDocData']));
     }
 
     /**
-     * Merges the archive back with the api. This is necessary, when working
-     * with an archive over multiple requests and storing the archive somewhere
-     * (session, database etc) in the meantime.
+     * Merges the DigiDoc container back with the api. This is necessary, when
+     * working with a container over multiple requests and storing it somewhere
+     * (session, database etc) inbetween the requests.
      *
-     * @param Archive $archive
+     * @param Container $container
      */
-    public function merge(Archive $archive)
+    public function merge(Container $container)
     {
-        if ($this->tracker->has($archive)) {
+        if ($this->tracker->has($container)) {
             return;
         }
 
-        $this->tracker->add($archive);
-        $this->tracker->add($archive->getFiles()->toArray());
-        $this->tracker->add($archive->getSignatures()->toArray());
+        $this->tracker->add($container);
+        $this->tracker->add($container->getFiles()->toArray());
+        $this->tracker->add($container->getSignatures()->toArray());
     }
 
     private function addFiles(Session $session, FileCollection $files)
@@ -260,14 +260,14 @@ class Api
     }
 
     /**
-     * @param Archive $archive
+     * @param Container $container
      *
-     * @throws ApiException If the archive is not merged
+     * @throws ApiException If the DigiDoc container is not merged
      */
-    private function failIfNotMerged(Archive $archive)
+    private function failIfNotMerged(Container $container)
     {
-        if (!$this->tracker->has($archive)) {
-            throw ApiException::createNotTracked($archive);
+        if (!$this->tracker->has($container)) {
+            throw ApiException::createNotTracked($container);
         }
     }
 }

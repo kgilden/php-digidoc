@@ -15,7 +15,7 @@ use KG\DigiDoc\Api;
 
 class ApiTest extends \PHPUnit_Framework_TestCase
 {
-    public function testCreateCreatesNewArchive()
+    public function testCreateCreatesNewContainer()
     {
         $client = $this->getMockClient();
         $this->mockStartSession($client, $sessionId = 42);
@@ -28,13 +28,13 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->create();
+        $container = $api->create();
 
-        $this->assertInstanceOf('KG\DigiDoc\Archive', $archive);
-        $this->assertEquals($sessionId, $archive->getSession()->getId());
+        $this->assertInstanceOf('KG\DigiDoc\Container', $container);
+        $this->assertEquals($sessionId, $container->getSession()->getId());
     }
 
-    public function testOpenCreatesNewArchive()
+    public function testOpenCreatesNewContainer()
     {
         $info = new \stdClass();
         $info->DataFileInfo = $info->SignatureInfo = null;
@@ -54,13 +54,13 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->open('/path/to/file.bdoc');
+        $container = $api->open('/path/to/file.bdoc');
 
-        $this->assertInstanceOf('KG\DigiDoc\Archive', $archive);
-        $this->assertEquals($sessionId, $archive->getSession()->getId());
+        $this->assertInstanceOf('KG\DigiDoc\Container', $container);
+        $this->assertEquals($sessionId, $container->getSession()->getId());
     }
 
-    public function testOpenAddsFilesToArchive()
+    public function testOpenAddsFilesToContainer()
     {
         $fileInfo = $this->getMockDataFileInfo();
         $fileInfo->Id = 'example.doc';
@@ -84,13 +84,13 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->open('/path/to/file.bdoc');
-        $file = $archive->getFiles()->first();
+        $container = $api->open('/path/to/file.bdoc');
+        $file = $container->getFiles()->first();
 
         $this->assertSame($fileInfo->Id, $file->getId());
     }
 
-    public function testOpenAddsSignaturesToArchive()
+    public function testOpenAddsSignaturesToContainer()
     {
         $signatureInfo = $this->getMockSignatureInfo();
         $signatureInfo->Id = 'S0';
@@ -114,8 +114,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $archive = $api->open('/path/to/file.bdoc');
-        $signature = $archive->getSignatures()->first();
+        $container = $api->open('/path/to/file.bdoc');
+        $signature = $container->getSignatures()->first();
 
         $this->assertSame($signatureInfo->Id, $signature->getId());
     }
@@ -130,9 +130,9 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($sessionId = 69))
         ;
 
-        $archive = $this->getMockArchive();
+        $container = $this->getMockContainer();
 
-        $archive
+        $container
             ->expects($this->once())
             ->method('getSession')
             ->will($this->returnValue($session))
@@ -147,16 +147,16 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
-        $api->close($archive);
+        $api->close($container);
     }
 
     /**
-     * @return \KG\DigiDoc\Archive|PHPUnit_Framework_MockObject_MockObject
+     * @return \KG\DigiDoc\Container|PHPUnit_Framework_MockObject_MockObject
      */
-    private function getMockArchive()
+    private function getMockContainer()
     {
         return $this
-            ->getMockBuilder('KG\DigiDoc\Archive')
+            ->getMockBuilder('KG\DigiDoc\Container')
             ->disableOriginalConstructor()
             ->getMock()
         ;
