@@ -17,7 +17,7 @@ use KG\DigiDoc\Collections\FileCollection;
 use KG\DigiDoc\Collections\SignatureCollection;
 use KG\DigiDoc\Soap\Wsdl\SignedDocInfo;
 
-class Api
+class Api implements ApiInterface
 {
     const CONTENT_TYPE_HASHCODE = 'HASHCODE';
     const CONTENT_TYPE_EMBEDDED = 'EMBEDDED_BASE64';
@@ -52,11 +52,7 @@ class Api
     }
 
     /**
-     * Creates a DigiDoc container.
-     *
-     * @api
-     *
-     * @return Container
+     * {@inheritDoc}
      */
     public function create()
     {
@@ -71,13 +67,7 @@ class Api
     }
 
     /**
-     * Opens a DigiDoc container on the local filesystem.
-     *
-     * @api
-     *
-     * @param string $path Path to the DigiDoc container
-     *
-     * @return Container
+     * {@inheritDoc}
      */
     public function open($path)
     {
@@ -95,13 +85,7 @@ class Api
     }
 
     /**
-     * Closes the session between the local and remote systems of the given
-     * DigiDoc container. This must be the last method called after all other
-     * transactions.
-     *
-     * @api
-     *
-     * @param Container $container
+     * {@inheritDoc}
      */
     public function close(Container $container)
     {
@@ -109,16 +93,7 @@ class Api
     }
 
     /**
-     * Updates the state in the remote api to match the contents of the given
-     * DigiDoc container. The following is done in the same order:
-     *
-     *  - new files uploaded;
-     *  - new signatures added and challenges injected;
-     *  - signatures with solutions to challenges sealed;
-     *
-     * @api
-     *
-     * @param Container $container
+     * {@inheritDoc}
      */
     public function update(Container $container)
     {
@@ -139,15 +114,7 @@ class Api
     }
 
     /**
-     * Downloads the contents of the DigiDoc container from the server and
-     * writes them to the given local path. If you modify a container and call
-     * this method without prior updating, the changes will not be reflected
-     * in the written file.
-     *
-     * @api
-     *
-     * @param Container $container
-     * @param string  $path
+     * {@inheritDoc}
      */
     public function write(Container $container, $path)
     {
@@ -159,11 +126,7 @@ class Api
     }
 
     /**
-     * Merges the DigiDoc container back with the api. This is necessary, when
-     * working with a container over multiple requests and storing it somewhere
-     * (session, database etc) inbetween the requests.
-     *
-     * @param Container $container
+     * {@inheritDoc}
      */
     public function merge(Container $container)
     {
