@@ -11,6 +11,7 @@
 
 namespace KG\DigiDoc;
 
+use KG\DigiDoc\Exception\UnexpectedTypeException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
@@ -52,11 +53,38 @@ class Container
     }
 
     /**
+     * Adds a new file to the container. NB! Files cannot be added once the
+     * container has at least 1 signature.
+     *
+     * @param string|File $pathOrFile
+     */
+    public function addFile($pathOrFile)
+    {
+        $file = is_string($pathOrFile) ? new File($pathOrFile) : $pathOrFile;
+
+        if (!($file instanceof File)) {
+            throw new UnexpectedTypeException('string" or "\KG\DigiDoc\File', $file);
+        }
+
+        $this->getFiles()->add($file);
+    }
+
+    /**
      * @return Collection
      */
     public function getFiles()
     {
         return $this->files;
+    }
+
+    /**
+     * Adds a new signature to the archive.
+     *
+     * @param Signature $signature
+     */
+    public function addSignature(Signature $signature)
+    {
+        $this->getSignatures()->add($signature);
     }
 
     /**
