@@ -1,7 +1,7 @@
 PHP DigiDoc
 ===========
 
-[![Build Status](https://travis-ci.org/kgilden/php-digidoc.svg?branch=master)](https://travis-ci.org/kgilden/php-digidoc)
+[![Build Status](http://img.shields.io/travis/kgilden/php-digidoc.svg?style=flat)](https://travis-ci.org/kgilden/php-digidoc)
 
 `PHP DigiDoc` is a PHP library for digitally signing and verifying digital
 signatures using estonian id cards.
