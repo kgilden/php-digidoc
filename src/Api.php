@@ -102,7 +102,7 @@ class Api implements ApiInterface
         $tracker = $this->tracker;
 
         $this
-            ->addFiles($session, $container->getFiles()->filter($untrackedFn))
+            ->addFiles($session, $container->getFiles())
             ->addSignatures($session, $container->getSignatures())
             ->sealSignatures($session, $container->getSignatures())
         ;
@@ -137,6 +137,11 @@ class Api implements ApiInterface
     private function addFiles(Session $session, $files)
     {
         foreach ($files as $file) {
+            // Skips already tracked files, because they're already added.
+            if ($tracker->has($file)) {
+                continue;
+            }
+
             $this->call('addDataFile', array(
                 $session->getId(),
                 $file->getName(),
@@ -157,8 +162,8 @@ class Api implements ApiInterface
     private function addSignatures(Session $session, $signatures)
     {
         foreach ($signatures as $signature) {
-            // Skips already tracked objects, because they're already added.
-            if ($tracker->has($object)) {
+            // Skips already tracked signatures, because they're already added.
+            if ($tracker->has($signature)) {
                 continue;
             }
 
