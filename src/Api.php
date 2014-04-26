@@ -99,7 +99,6 @@ class Api implements ApiInterface
         $this->failIfNotMerged($container);
 
         $session = $container->getSession();
-        $tracker = $this->tracker;
 
         $this
             ->addFiles($session, $container->getFiles())
@@ -138,7 +137,7 @@ class Api implements ApiInterface
     {
         foreach ($files as $file) {
             // Skips already tracked files, because they're already added.
-            if ($tracker->has($file)) {
+            if ($this->tracker->has($file)) {
                 continue;
             }
 
@@ -163,7 +162,7 @@ class Api implements ApiInterface
     {
         foreach ($signatures as $signature) {
             // Skips already tracked signatures, because they're already added.
-            if ($tracker->has($signature)) {
+            if ($this->tracker->has($signature)) {
                 continue;
             }
 
