@@ -12,6 +12,7 @@
 namespace KG\DigiDoc\Tests\ApiTest;
 
 use KG\DigiDoc\Api;
+use KG\DigiDoc\Container;
 
 class ApiTest extends \PHPUnit_Framework_TestCase
 {
@@ -148,6 +149,31 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
         $api->close($container);
+    }
+
+    /**
+     * @expectedException \KG\DigiDoc\Exception\ApiException
+     * @expectedExceptionMessage DigiDoc container must be merged with Api
+     */
+    public function testUpdateFailsIfContainerNotMerged()
+    {
+        $api = new Api($this->getMockClient());
+        $api->update($this->getMockContainer());
+    }
+
+    public function testUpdateAddsContainerToTrackerIfMergeTrue()
+    {
+        $container = new Container($this->getMockSession());
+
+        $tracker = $this->getMockTracker();
+        $tracker
+            ->expects($this->at(1))
+            ->method('add')
+            ->with($container)
+        ;
+
+        $api = new Api($this->getMockClient(), null, $tracker);
+        $api->update($container, true);
     }
 
     /**

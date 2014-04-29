@@ -11,6 +11,8 @@
 
 namespace KG\DigiDoc\Exception;
 
+use KG\DigiDoc\Container;
+
 /**
  * ApiException is a generic exception for failed api calls.
  */

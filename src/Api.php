@@ -93,10 +93,16 @@ class Api implements ApiInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @param boolean $merge Merges the container before updating it (false by default)
      */
-    public function update(Container $container)
+    public function update(Container $container, $merge = false)
     {
-        $this->failIfNotMerged($container);
+        if ($merge) {
+            $this->merge($container);
+        } else {
+            $this->failIfNotMerged($container);
+        }
 
         $session = $container->getSession();
 
@@ -244,7 +250,7 @@ class Api implements ApiInterface
     private function failIfNotMerged(Container $container)
     {
         if (!$this->tracker->has($container)) {
-            throw ApiException::createNotTracked($container);
+            throw ApiException::createNotMerged($container);
         }
     }
 }
