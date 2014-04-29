@@ -94,4 +94,20 @@ class Container
     {
         return $this->signatures;
     }
+
+    /**
+     * Gets a signature given it's id in the container.
+     *
+     * @param string $signatureId The signature id (e.g. "S01")
+     *
+     * @return Signature|null The found signature or null, if no match was found
+     */
+    public function getSignature($signatureId)
+    {
+        foreach ($this->getSignatures() as $signature) {
+            if ($signature->getId() === $signatureId) {
+                return $signature;
+            }
+        }
+    }
 }
