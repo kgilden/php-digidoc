@@ -64,6 +64,12 @@ class Client extends \SoapClient
 
             $result = parent::__soapCall($function_name, $arguments, $options, $input_headers, $output_headers);
 
+            // Some requests may return a string result ...
+            if (is_string($result) && 'OK' !== $result) {
+                throw ApiException::createIncorrectStatus($result);
+            }
+
+            // ... and some return an array.
             if ('OK' !== $result['Status']) {
                 throw ApiException::createIncorrectStatus($result['Status']);
             }
