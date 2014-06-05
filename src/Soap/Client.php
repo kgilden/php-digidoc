@@ -18,6 +18,9 @@ use KG\DigiDoc\Exception\ApiException;
  */
 class Client extends \SoapClient
 {
+    const WSDL_PROD = 'https://digidocservice.sk.ee/';
+    const WSDL_TEST = 'https://www.openxades.org:9443/?wsdl';
+
     private static $classmap = array(
         'DataFileAttribute' => '\KG\DigiDoc\Soap\Wsdl\DataFileAttribute',
         'DataFileInfo' => '\KG\DigiDoc\Soap\Wsdl\DataFileInfo',
@@ -51,6 +54,15 @@ class Client extends \SoapClient
         }
 
         $options['classmap'] = array_merge(self::$classmap, $options['classmap']);
+
+        if ($wsdl === self::WSDL_TEST && !isset($options['stream_context'])) {
+            // In newer PHP versions peer verification is enabled by default,
+            // but the test wsdl url does not pass verification so we disable it.
+            $options['stream_context'] = stream_context_create(array('ssl' => array(
+                'verify_peer'      => false,
+                'verify_peer_name' => false,
+            )));
+        }
 
         parent::__construct($wsdl, $options);
     }
