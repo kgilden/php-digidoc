@@ -206,7 +206,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     private function getMockClient()
     {
         return $this
-            ->getMockBuilder('SoapClient')
+            ->getMockBuilder('KG\DigiDoc\Soap\Client')
             ->disableOriginalConstructor()
             ->getMock()
         ;
