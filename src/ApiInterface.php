@@ -62,6 +62,20 @@ interface ApiInterface
 
     /**
      * Downloads the contents of the DigiDoc container from the server and
+     * outputs it.
+     *
+     * @todo Perhaps it's possible to create a stream of some sort?
+     *
+     * @api
+     *
+     * @param Container $container
+     *
+     * @return string
+     */
+    public function toString(Container $container);
+
+    /**
+     * Downloads the contents of the DigiDoc container from the server and
      * writes them to the given local path. If you modify a container and call
      * this method without prior updating, the changes will not be reflected
      * in the written file.

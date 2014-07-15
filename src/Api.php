@@ -116,13 +116,21 @@ class Api implements ApiInterface
     /**
      * {@inheritDoc}
      */
-    public function write(Container $container, $path)
+    public function toString(Container $container)
     {
         $this->failIfNotMerged($container);
 
         $result = $this->call('getSignedDoc', array($container->getSession()->getId()));
 
-        file_put_contents($path, $this->encoder->decode($result['SignedDocData']));
+        return $this->encoder->decode($result['SignedDocData']);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function write(Container $container, $path)
+    {
+        file_put_contents($path, $this->toString($container));
     }
 
     /**
