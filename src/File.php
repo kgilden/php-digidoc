@@ -107,6 +107,31 @@ class File
     }
 
     /**
+     * @todo A duplicate of Encoder::getFileContent()
+     *
+     * @return string
+     *
+     * @throws \LogicException If the file is not real
+     */
+    public function getContent()
+    {
+        if (!($pathname = $this->getPathname())) {
+            throw new \LogicException('No pathname was specified - maybe it came from DigiDoc web service?');
+        }
+
+        $level = error_reporting(0);
+        $content = file_get_contents($pathname);
+        error_reporting($level);
+
+        if (false === $content) {
+            $error = error_get_last();
+            throw new RuntimeException($error['message']);
+        }
+
+        return $content;
+    }
+
+    /**
      * @return string|null
      */
     public function getPathname()

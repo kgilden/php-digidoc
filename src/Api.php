@@ -186,7 +186,7 @@ class Api implements ApiInterface
                 $file->getSize(),
                 '',
                 '',
-                $this->encoder->encodeFileContent($file->getPathname()),
+                $this->encoder->encode($file->getContent()),
             ));
 
             $this->tracker->add($file);
