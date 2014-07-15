@@ -68,14 +68,37 @@ class Api implements ApiInterface
     /**
      * {@inheritDoc}
      */
+    public function fromString($bytes)
+    {
+        $result = $this->call('startSession', array('', $this->encoder->encode($bytes), true, ''));
+
+        return $this->createContainer($result['Sesscode'], $result['SignedDocInfo']);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function open($path)
     {
         $result = $this->call('startSession', array('', $this->encoder->encodeFileContent($path), true, ''));
 
+        return $this->createContainer($result['Sesscode'], $result['SignedDocInfo']);
+    }
+
+    /**
+     * Creates a new DigiDoc container.
+     *
+     * @param string        $sessionCode
+     * @param SignedDocInfo $signedDocInfo
+     *
+     * @return Container
+     */
+    private function createContainer($sessionCode, SignedDocInfo $signedDocInfo)
+    {
         $container = new Container(
-            new Session($result['Sesscode']),
-            $this->createAndTrack($result['SignedDocInfo']->DataFileInfo, 'KG\DigiDoc\File'),
-            $this->createAndTrack($result['SignedDocInfo']->SignatureInfo, 'KG\DigiDoc\Signature')
+            new Session($sessionCode),
+            $this->createAndTrack($signedDocInfo->DataFileInfo, 'KG\DigiDoc\File'),
+            $this->createAndTrack($signedDocInfo->SignatureInfo, 'KG\DigiDoc\Signature')
         );
 
         $this->tracker->add($container);

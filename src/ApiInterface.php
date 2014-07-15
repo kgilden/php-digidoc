@@ -23,7 +23,20 @@ interface ApiInterface
     public function create();
 
     /**
+     * Creates a new DigiDoc container from its string contents.
+     *
+     * @api
+     *
+     * @param string $bytes  DigiDoc container raw bytes
+     *
+     * @return Container
+     */
+    public function fromString($bytes);
+
+    /**
      * Opens a DigiDoc container given the path to it.
+     *
+     * @todo Perhaps it's possible to create a stream of some sort?
      *
      * @api
      *
