@@ -37,7 +37,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
     public function testOpenCreatesNewContainer()
     {
-        $info = new \stdClass();
+        $info = $this->getMockSignedDocInfo();
         $info->DataFileInfo = $info->SignatureInfo = null;
 
         $client = $this->getMockClient();
@@ -66,7 +66,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $fileInfo = $this->getMockDataFileInfo();
         $fileInfo->Id = 'example.doc';
 
-        $info = new \stdClass();
+        $info = $this->getMockSignedDocInfo();
         $info->DataFileInfo = $fileInfo;
         $info->SignatureInfo = null;
 
@@ -96,7 +96,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $signatureInfo = $this->getMockSignatureInfo();
         $signatureInfo->Id = 'S0';
 
-        $info = new \stdClass();
+        $info = $this->getMockSignedDocInfo();
         $info->DataFileInfo = null;
         $info->SignatureInfo = $signatureInfo;
 
@@ -230,6 +230,18 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     private function getMockEncoder()
     {
         return $this->getMock('KG\DigiDoc\Encoder');
+    }
+
+    /**
+     * @return \KG\DigiDoc\Soap\Wsdl\SignedDocInfo|PHPUnit_Framework_MocObject_MocObject
+     */
+    private function getMockSignedDocInfo()
+    {
+        return $this
+            ->getMockBuilder('KG\DigiDoc\Soap\Wsdl\SignedDocInfo')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
     }
 
     /**
