@@ -9,20 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace KG\DigiDoc\Tests;
+namespace KG\DigiDoc\tests;
 
-use KG\DigiDoc\Container;
+use KG\DigiDoc\Envelope;
 
-/**
- * @deprecated Deprecated since version 0.1.2, to be removed in 1.0.0
- */
-class ContainerTest extends \PHPUnit_Framework_TestCase
+class EnvelopeTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetSignatureReturnsNullIfNoSuchId()
     {
-        $container = new Container($this->getMockSession());
+        $envelope = new Envelope($this->getMockSession());
 
-        $this->assertNull($container->getSignature('S01'));
+        $this->assertNull($envelope->getSignature('S01'));
     }
 
     public function testGetSignatureReturnsSignatureById()
@@ -34,10 +31,10 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($signatureId = 'S01'))
         ;
 
-        $container = new Container($this->getMockSession());
-        $container->addSignature($signature);
+        $envelope = new Envelope($this->getMockSession());
+        $envelope->addSignature($signature);
 
-        $this->assertSame($signature, $container->getSignature($signatureId));
+        $this->assertSame($signature, $envelope->getSignature($signatureId));
     }
 
     /**

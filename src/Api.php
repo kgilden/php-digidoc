@@ -58,11 +58,11 @@ class Api implements ApiInterface
         $result = $this->call('startSession', array('', '', true, ''));
         $result = $this->call('createSignedDoc', array($sessionId = $result['Sesscode'], self::DOC_FORMAT, self::DOC_VERSION));
 
-        $container = new Container(new Session($sessionId));
+        $envelope = new Envelope(new Session($sessionId));
 
-        $this->tracker->add($container);
+        $this->tracker->add($envelope);
 
-        return $container;
+        return $envelope;
     }
 
     /**
@@ -72,7 +72,7 @@ class Api implements ApiInterface
     {
         $result = $this->call('startSession', array('', $this->encoder->encode($bytes), true, ''));
 
-        return $this->createContainer($result['Sesscode'], $result['SignedDocInfo']);
+        return $this->createEnvelope($result['Sesscode'], $result['SignedDocInfo']);
     }
 
     /**
@@ -82,68 +82,68 @@ class Api implements ApiInterface
     {
         $result = $this->call('startSession', array('', $this->encoder->encodeFileContent($path), true, ''));
 
-        return $this->createContainer($result['Sesscode'], $result['SignedDocInfo']);
+        return $this->createEnvelope($result['Sesscode'], $result['SignedDocInfo']);
     }
 
     /**
-     * Creates a new DigiDoc container.
+     * Creates a new DigiDoc envelope.
      *
      * @param string        $sessionCode
      * @param SignedDocInfo $signedDocInfo
      *
-     * @return Container
+     * @return Envelope
      */
-    private function createContainer($sessionCode, SignedDocInfo $signedDocInfo)
+    private function createEnvelope($sessionCode, SignedDocInfo $signedDocInfo)
     {
-        $container = new Container(
+        $envelope = new Envelope(
             new Session($sessionCode),
             $this->createAndTrack($signedDocInfo->DataFileInfo, 'KG\DigiDoc\File'),
             $this->createAndTrack($signedDocInfo->SignatureInfo, 'KG\DigiDoc\Signature')
         );
 
-        $this->tracker->add($container);
+        $this->tracker->add($envelope);
 
-        return $container;
+        return $envelope;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function close(Container $container)
+    public function close(Envelope $envelope)
     {
-        $this->call('closeSession', array($container->getSession()->getId()));
+        $this->call('closeSession', array($envelope->getSession()->getId()));
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param boolean $merge Merges the container before updating it (false by default)
+     * @param boolean $merge Merges the envelope before updating it (false by default)
      */
-    public function update(Container $container, $merge = false)
+    public function update(Envelope $envelope, $merge = false)
     {
         if ($merge) {
-            $this->merge($container);
+            $this->merge($envelope);
         } else {
-            $this->failIfNotMerged($container);
+            $this->failIfNotMerged($envelope);
         }
 
-        $session = $container->getSession();
+        $session = $envelope->getSession();
 
         $this
-            ->addFiles($session, $container->getFiles())
-            ->addSignatures($session, $container->getSignatures())
-            ->sealSignatures($session, $container->getSignatures())
+            ->addFiles($session, $envelope->getFiles())
+            ->addSignatures($session, $envelope->getSignatures())
+            ->sealSignatures($session, $envelope->getSignatures())
         ;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function toString(Container $container)
+    public function toString(Envelope $envelope)
     {
-        $this->failIfNotMerged($container);
+        $this->failIfNotMerged($envelope);
 
-        $result = $this->call('getSignedDoc', array($container->getSession()->getId()));
+        $result = $this->call('getSignedDoc', array($envelope->getSession()->getId()));
 
         return $this->encoder->decode($result['SignedDocData']);
     }
@@ -151,23 +151,23 @@ class Api implements ApiInterface
     /**
      * {@inheritDoc}
      */
-    public function write(Container $container, $path)
+    public function write(Envelope $envelope, $path)
     {
-        file_put_contents($path, $this->toString($container));
+        file_put_contents($path, $this->toString($envelope));
     }
 
     /**
      * {@inheritDoc}
      */
-    public function merge(Container $container)
+    public function merge(Envelope $envelope)
     {
-        if ($this->tracker->has($container)) {
+        if ($this->tracker->has($envelope)) {
             return;
         }
 
-        $this->tracker->add($container);
-        $this->tracker->add($container->getFiles()->toArray());
-        $this->tracker->add($container->getSignatures()->toArray());
+        $this->tracker->add($envelope);
+        $this->tracker->add($envelope->getFiles()->toArray());
+        $this->tracker->add($envelope->getSignatures()->toArray());
     }
 
     private function addFiles(Session $session, $files)
@@ -274,14 +274,14 @@ class Api implements ApiInterface
     }
 
     /**
-     * @param Container $container
+     * @param Envelope $envelope
      *
-     * @throws ApiException If the DigiDoc container is not merged
+     * @throws ApiException If the DigiDoc envelope is not merged
      */
-    private function failIfNotMerged(Container $container)
+    private function failIfNotMerged(Envelope $envelope)
     {
-        if (!$this->tracker->has($container)) {
-            throw ApiException::createNotMerged($container);
+        if (!$this->tracker->has($envelope)) {
+            throw ApiException::createNotMerged($envelope);
         }
     }
 }

@@ -19,20 +19,20 @@ require_once 'vendor/autoload.php';
 
 $api = new Api(new Client());
 
-// First off, let's create a new container.
-$container = $api->create();
+// First off, let's create a new envelope.
+$envelope = $api->create();
 
 // Add the files you want to get signed.
-$container->addFile('/path/to/file.txt');
-$container->addFile('/second/path/to/file.md');
+$envelope->addFile('/path/to/file.txt');
+$envelope->addFile('/second/path/to/file.md');
 
 // Add a signature or two. Signature takes in certificate id and certificate
 // signature. You must retrieve these from the client using the browser plugin.
-$container->addSignature($signature = new Signature('F1..20', '8F..C0'));
+$envelope->addSignature($signature = new Signature('F1..20', '8F..C0'));
 
 // Sync up with the server. For example, the previous signature is given
 // a challenge, which the client must solve.
-$api->update($container);
+$api->update($envelope);
 
 printf("Challenge: %s\n", $signature->getChallenge());
 
@@ -41,14 +41,14 @@ printf("Challenge: %s\n", $signature->getChallenge());
 $signature->setSolution('F6..00');
 
 // Sync up with the server once more to send the solution.
-$api->update($container);
+$api->update($envelope);
 
 // Time to write it on the disc.
-$api->write('/tmp/my-newly-created-container.bdoc');
+$api->write('/tmp/my-newly-created-envelope.bdoc');
 
-// Make sure to "close" the container (basically closes the session in the
+// Make sure to "close" the envelope (basically closes the session in the
 // remote DigiDoc service).
-$api->close($container);
+$api->close($envelope);
 
 ```
 
