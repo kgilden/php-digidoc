@@ -19,7 +19,8 @@
         "doctrine/collections": "~1.0"
     },
     "require-dev": {
-        "wsdl2phpgenerator/wsdl2phpgenerator": "~2.3"
+        "wsdl2phpgenerator/wsdl2phpgenerator": "~2.3",
+        "php-vfs/php-vfs": "~1.2"
     },
     "autoload": {
         "psr-4": { "KG\\DigiDoc\\": "src/" }
