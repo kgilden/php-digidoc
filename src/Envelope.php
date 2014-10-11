@@ -15,7 +15,7 @@ use KG\DigiDoc\Exception\UnexpectedTypeException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-class Envelope
+class Envelope implements EnvelopeInterface
 {
     /**
      * @var \Doctrine\Common\Collections\Collection
