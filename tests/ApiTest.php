@@ -12,11 +12,11 @@
 namespace KG\DigiDoc\Tests\ApiTest;
 
 use KG\DigiDoc\Api;
-use KG\DigiDoc\Container;
+use KG\DigiDoc\Envelope;
 
 class ApiTest extends \PHPUnit_Framework_TestCase
 {
-    public function testCreateCreatesNewContainer()
+    public function testCreateCreatesNewEnvelope()
     {
         $client = $this->getMockClient();
         $this->mockStartSession($client, $sessionId = 42);
@@ -29,13 +29,13 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $container = $api->create();
+        $envelope = $api->create();
 
-        $this->assertInstanceOf('KG\DigiDoc\Container', $container);
-        $this->assertEquals($sessionId, $container->getSession()->getId());
+        $this->assertInstanceOf('KG\DigiDoc\Envelope', $envelope);
+        $this->assertEquals($sessionId, $envelope->getSession()->getId());
     }
 
-    public function testOpenCreatesNewContainer()
+    public function testOpenCreatesNewEnvelope()
     {
         $info = $this->getMockSignedDocInfo();
         $info->DataFileInfo = $info->SignatureInfo = null;
@@ -55,13 +55,13 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $container = $api->open('/path/to/file.bdoc');
+        $envelope = $api->open('/path/to/file.bdoc');
 
-        $this->assertInstanceOf('KG\DigiDoc\Container', $container);
-        $this->assertEquals($sessionId, $container->getSession()->getId());
+        $this->assertInstanceOf('KG\DigiDoc\Envelope', $envelope);
+        $this->assertEquals($sessionId, $envelope->getSession()->getId());
     }
 
-    public function testOpenAddsFilesToContainer()
+    public function testOpenAddsFilesToEnvelope()
     {
         $fileInfo = $this->getMockDataFileInfo();
         $fileInfo->Id = 'example.doc';
@@ -85,13 +85,13 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $container = $api->open('/path/to/file.bdoc');
-        $file = $container->getFiles()->first();
+        $envelope = $api->open('/path/to/file.bdoc');
+        $file = $envelope->getFiles()->first();
 
         $this->assertSame($fileInfo->Id, $file->getId());
     }
 
-    public function testOpenAddsSignaturesToContainer()
+    public function testOpenAddsSignaturesToEnvelope()
     {
         $signatureInfo = $this->getMockSignatureInfo();
         $signatureInfo->Id = 'S0';
@@ -115,8 +115,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
 
-        $container = $api->open('/path/to/file.bdoc');
-        $signature = $container->getSignatures()->first();
+        $envelope = $api->open('/path/to/file.bdoc');
+        $signature = $envelope->getSignatures()->first();
 
         $this->assertSame($signatureInfo->Id, $signature->getId());
     }
@@ -131,9 +131,9 @@ class ApiTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($sessionId = 69))
         ;
 
-        $container = $this->getMockContainer();
+        $envelope = $this->getMockEnvelope();
 
-        $container
+        $envelope
             ->expects($this->once())
             ->method('getSession')
             ->will($this->returnValue($session))
@@ -148,41 +148,41 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         ;
 
         $api = new Api($client, $this->getMockEncoder(), $this->getMockTracker());
-        $api->close($container);
+        $api->close($envelope);
     }
 
     /**
      * @expectedException \KG\DigiDoc\Exception\ApiException
-     * @expectedExceptionMessage DigiDoc container must be merged with Api
+     * @expectedExceptionMessage DigiDoc envelope must be merged with Api
      */
-    public function testUpdateFailsIfContainerNotMerged()
+    public function testUpdateFailsIfEnvelopeNotMerged()
     {
         $api = new Api($this->getMockClient());
-        $api->update($this->getMockContainer());
+        $api->update($this->getMockEnvelope());
     }
 
-    public function testUpdateAddsContainerToTrackerIfMergeTrue()
+    public function testUpdateAddsEnvelopeToTrackerIfMergeTrue()
     {
-        $container = new Container($this->getMockSession());
+        $envelope = new Envelope($this->getMockSession());
 
         $tracker = $this->getMockTracker();
         $tracker
             ->expects($this->at(1))
             ->method('add')
-            ->with($container)
+            ->with($envelope)
         ;
 
         $api = new Api($this->getMockClient(), null, $tracker);
-        $api->update($container, true);
+        $api->update($envelope, true);
     }
 
     /**
-     * @return \KG\DigiDoc\Container|PHPUnit_Framework_MockObject_MockObject
+     * @return \KG\DigiDoc\Envelope|PHPUnit_Framework_MockObject_MockObject
      */
-    private function getMockContainer()
+    private function getMockEnvelope()
     {
         return $this
-            ->getMockBuilder('KG\DigiDoc\Container')
+            ->getMockBuilder('KG\DigiDoc\Envelope')
             ->disableOriginalConstructor()
             ->getMock()
         ;

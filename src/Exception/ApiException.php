@@ -11,7 +11,7 @@
 
 namespace KG\DigiDoc\Exception;
 
-use KG\DigiDoc\Container;
+use KG\DigiDoc\Envelope;
 
 /**
  * ApiException is a generic exception for failed api calls.
@@ -95,16 +95,16 @@ class ApiException extends DigiDocException
     }
 
     /**
-     * Creates a new ApiException for non-merged DigiDoc containers.
+     * Creates a new ApiException for non-merged DigiDoc envelopes.
      *
-     * @param Container       $container
+     * @param Envelope        $envelope
      * @param \Exception|null $e
      *
      * @return ApiException
      */
-    public static function createNotMerged(Container $contaienr, \Exception $e = null)
+    public static function createNotMerged(Envelope $envelope, \Exception $e = null)
     {
-        $message = 'The given DigiDoc container must be merged with Api (using Api::merge) before calling this method.';
+        $message = 'The given DigiDoc envelope must be merged with Api (using Api::merge) before calling this method.';
 
         return new static($message, null, $e);
     }

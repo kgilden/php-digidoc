@@ -14,54 +14,54 @@ namespace KG\DigiDoc;
 interface ApiInterface
 {
     /**
-     * Creates a new DigiDoc container.
+     * Creates a new DigiDoc envelope.
      *
      * @api
      *
-     * @return Container
+     * @return Envelope
      */
     public function create();
 
     /**
-     * Creates a new DigiDoc container from its string contents.
+     * Creates a new DigiDoc envelope from its string contents.
      *
      * @api
      *
-     * @param string $bytes  DigiDoc container raw bytes
+     * @param string $bytes  DigiDoc envelope raw bytes
      *
-     * @return Container
+     * @return Envelope
      */
     public function fromString($bytes);
 
     /**
-     * Opens a DigiDoc container given the path to it.
+     * Opens a DigiDoc envelope given the path to it.
      *
      * @todo Perhaps it's possible to create a stream of some sort?
      *
      * @api
      *
-     * @param string $path Path to the DigiDoc container
+     * @param string $path Path to the DigiDoc envelope
      *
-     * @return Container
+     * @return Envelope
      */
     public function open($path);
 
     /**
      * Closes the session between the local and remote systems of the given
-     * DigiDoc container. This must be the last method called after all other
+     * DigiDoc envelope. This must be the last method called after all other
      * transactions.
      *
      * @todo Think of solutions where this would not be necessary
      *
      * @api
      *
-     * @param Container $container
+     * @param Envelope $envelope
      */
-    public function close(Container $container);
+    public function close(Envelope $envelope);
 
     /**
      * Updates the state in the remote api to match the contents of the given
-     * DigiDoc container. The following is done in the same order:
+     * DigiDoc envelope. The following is done in the same order:
      *
      *  - new files uploaded;
      *  - new signatures added and challenges injected;
@@ -69,43 +69,43 @@ interface ApiInterface
      *
      * @api
      *
-     * @param Container $container
+     * @param Envelope $envelope
      */
-    public function update(Container $container);
+    public function update(Envelope $envelope);
 
     /**
-     * Downloads the contents of the DigiDoc container from the server and
+     * Downloads the contents of the DigiDoc envelope from the server and
      * outputs it.
      *
      * @todo Perhaps it's possible to create a stream of some sort?
      *
      * @api
      *
-     * @param Container $container
+     * @param Envelope $envelope
      *
      * @return string
      */
-    public function toString(Container $container);
+    public function toString(Envelope $envelope);
 
     /**
-     * Downloads the contents of the DigiDoc container from the server and
-     * writes them to the given local path. If you modify a container and call
+     * Downloads the contents of the DigiDoc envelope from the server and
+     * writes them to the given local path. If you modify a envelope and call
      * this method without prior updating, the changes will not be reflected
      * in the written file.
      *
      * @api
      *
-     * @param Container $container
-     * @param string    $path
+     * @param Envelope $envelope
+     * @param string   $path
      */
-    public function write(Container $container, $path);
+    public function write(Envelope $envelope, $path);
 
     /**
-     * Merges the DigiDoc container back with the api. This is necessary, when
-     * working with a container over multiple requests and storing it somewhere
+     * Merges the DigiDoc envelope back with the api. This is necessary, when
+     * working with a envelope over multiple requests and storing it somewhere
      * (session, database etc) inbetween the requests.
      *
-     * @param Container $container
+     * @param Envelope $envelope
      */
-    public function merge(Container $container);
+    public function merge(Envelope $envelope);
 }
