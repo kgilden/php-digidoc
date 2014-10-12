@@ -29,6 +29,21 @@ class Certificate
         $this->x509Cert = openssl_x509_read($x509CertData);
     }
 
+    /**
+     * Creates a new certificate from a PEM-encoded certificate missing
+     * "BEGIN CERTIFICATE" and "END CERTIFICATE" lines.
+     *
+     * @param string $pem
+     *
+     * @return Certificate
+     */
+    public static function fromPemWithoutWrappers($pem)
+    {
+        $pem = "-----BEGIN CERTIFICATE-----\n".$pem."-----END CERTIFICATE-----\n";
+
+        return new static($pem);
+    }
+
     public function __toString()
     {
         return print_r(openssl_x509_parse($this->x509Cert), true);

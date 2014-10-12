@@ -48,16 +48,17 @@ class EnvelopeTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\Iterator', $envelope->getSignatures());
     }
 
-    public function testGetSignaturesContainsOnlySignatureFiles()
+    public function testGetSignaturesContainsOnlySignatureObjects()
     {
         $path = __DIR__ . '/../fixtures/envelope.bdoc';
 
         $envelope = new Envelope($path);
-        $expected = array(
-            'zip://' . $path . '#' . 'META-INF/signatures0.xml',
-            'zip://' . $path . '#' . 'META-INF/signatures1.xml',
-        );
 
-        $this->assertEquals($expected, iterator_to_array($envelope->getSignatures()));
+        $signatures = iterator_to_array($envelope->getSignatures());
+
+        $this->assertCount(2, $signatures);
+        foreach ($signatures as $signature) {
+            $this->assertInstanceOf('KG\DigiDoc\Native\Signature', $signature);
+        }
     }
 }
