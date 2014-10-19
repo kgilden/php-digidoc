@@ -11,10 +11,9 @@
 
 namespace KG\DigiDoc\Native;
 
-use KG\DigiDoc\EnvelopeInterface;
 use DOMDocument;
 
-class Envelope implements EnvelopeInterface
+class Envelope
 {
     /**
      * @var \ZipArchive
@@ -62,19 +61,17 @@ class Envelope implements EnvelopeInterface
     /**
      * {@inheritDoc}
      */
-    public function getSignatures()
+    public function getStamps()
     {
-        $signatures = array();
+        $stamps = array();
 
         foreach ($this->getAllFileNames() as $fileName) {
             if (preg_match('/^META-INF\/signatures\d+\.xml$/', $fileName)) {
-                $signatures[] = $this->createSignature(
-                    $this->convertNameToFullPath($fileName)
-                );
+                $stamps[] = $this->createStamp($this->convertNameToFullPath($fileName));
             }
         }
 
-        return new \ArrayIterator($signatures);
+        return new \ArrayIterator($stamps);
     }
 
     public function __destruct()
@@ -123,20 +120,20 @@ class Envelope implements EnvelopeInterface
     }
 
     /**
-     * Creates a new Signature from the given file.
+     * Creates a new Stamp from the given file.
      *
      * @param string $path
      *
-     * @return Signature A new Signature object
+     * @return Stamp A new Stamp object
      *
      * @throws \RuntimeException If the path is not readable
      */
-    private function createSignature($path)
+    private function createStamp($path)
     {
         if (!$signatureContents = @file_get_contents($path)) {
             throw new \RuntimeException(sprintf('Failed to open signature "%s" for reading.', $path));
         }
 
-        return new Signature(new DOMDocument($signatureContents));
+        return new Stamp(new DOMDocument($signatureContents));
     }
 }

@@ -13,7 +13,7 @@ namespace KG\DigiDoc\Native;
 
 use DOMDocument;
 
-class Signature
+class Stamp
 {
     /**
      * @var DOMDocument
@@ -21,7 +21,7 @@ class Signature
     private $dom;
 
     /**
-     * @param DomDocument $dom DOM of the signature XML
+     * @param DomDocument $dom DOM of the stamp's XML representation
      */
     public function __construct(\DOMDocument $dom)
     {

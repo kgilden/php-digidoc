@@ -42,23 +42,23 @@ class EnvelopeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, iterator_to_array($envelope->getFiles()));
     }
 
-    public function testGetSignaturesReturnsIterator()
+    public function testGetStampsReturnsIterator()
     {
         $envelope = new Envelope(__DIR__ . '/../fixtures/envelope.bdoc');
-        $this->assertInstanceOf('\Iterator', $envelope->getSignatures());
+        $this->assertInstanceOf('\Iterator', $envelope->getStamps());
     }
 
-    public function testGetSignaturesContainsOnlySignatureObjects()
+    public function testGetStampsContainsOnlyStampObjects()
     {
         $path = __DIR__ . '/../fixtures/envelope.bdoc';
 
         $envelope = new Envelope($path);
 
-        $signatures = iterator_to_array($envelope->getSignatures());
+        $stamps = iterator_to_array($envelope->getStamps());
 
-        $this->assertCount(2, $signatures);
-        foreach ($signatures as $signature) {
-            $this->assertInstanceOf('KG\DigiDoc\Native\Signature', $signature);
+        $this->assertCount(2, $stamps);
+        foreach ($stamps as $stamp) {
+            $this->assertInstanceOf('KG\DigiDoc\Native\Stamp', $stamp);
         }
     }
 }
