@@ -11,7 +11,7 @@
 
 namespace KG\DigiDoc\Native;
 
-class Certificate
+class Cert
 {
     /**
      * @var resource

@@ -11,9 +11,9 @@
 
 namespace KG\DigiDoc\Tests\Native;
 
-use KG\DigiDoc\Native\Certificate;
+use KG\DigiDoc\Native\Cert;
 
-class CertificateTest extends \PHPUnit_Framework_TestCase
+class CertTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \PHPUnit_Framework_Error
@@ -21,12 +21,12 @@ class CertificateTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructFailsIfInvalidCert()
     {
-        $cert = new Certificate('not-cert-data');
+        $cert = new Cert('not-cert-data');
     }
 
-    public function testCertificateAcceptsProperCert()
+    public function testCertAcceptsProperCert()
     {
-        $cert = new Certificate($this->getCertData());
+        $cert = new Cert($this->getCertData());
     }
 
     private function getCertData()
