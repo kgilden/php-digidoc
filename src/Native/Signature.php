@@ -16,22 +16,15 @@ use DOMDocument;
 class Signature
 {
     /**
-     * @var Envelope
-     */
-    private $envelope;
-
-    /**
      * @var DOMDocument
      */
     private $dom;
 
     /**
-     * @param Envelope    $envelope Envelope containing the signature
-     * @param DomDocument $dom      DOM of the signature XML
+     * @param DomDocument $dom DOM of the signature XML
      */
-    public function __construct(Envelope $envelope, \DOMDocument $dom)
+    public function __construct(\DOMDocument $dom)
     {
-        $this->envelope = $envelope;
         $this->dom = $dom;
     }
 }

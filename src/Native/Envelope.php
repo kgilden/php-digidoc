@@ -137,6 +137,6 @@ class Envelope implements EnvelopeInterface
             throw new \RuntimeException(sprintf('Failed to open signature "%s" for reading.', $path));
         }
 
-        return new Signature($this, new DOMDocument($signatureContents));
+        return new Signature(new DOMDocument($signatureContents));
     }
 }
