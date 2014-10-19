@@ -11,6 +11,8 @@
 
 namespace KG\DigiDoc\Native;
 
+use DOMDocument;
+
 class Signature
 {
     /**
@@ -19,17 +21,17 @@ class Signature
     private $envelope;
 
     /**
-     * @var Certificate
+     * @var DOMDocument
      */
-    private $certificate;
+    private $dom;
 
     /**
-     * @param Envelope    $envelope    Envelope containing the signature
-     * @param Certificate $certificate The certificate used for signing
+     * @param Envelope    $envelope Envelope containing the signature
+     * @param DomDocument $dom      DOM of the signature XML
      */
-    public function __construct(Envelope $envelope, Certificate $certificate)
+    public function __construct(Envelope $envelope, \DOMDocument $dom)
     {
         $this->envelope = $envelope;
-        $this->certificate = $certificate;
+        $this->dom = $dom;
     }
 }

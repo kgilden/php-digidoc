@@ -12,7 +12,7 @@
 namespace KG\DigiDoc\Native;
 
 use KG\DigiDoc\EnvelopeInterface;
-use Symfony\Component\DomCrawler\Crawler;
+use DOMDocument;
 
 class Envelope implements EnvelopeInterface
 {
@@ -68,9 +68,8 @@ class Envelope implements EnvelopeInterface
 
         foreach ($this->getAllFileNames() as $fileName) {
             if (preg_match('/^META-INF\/signatures\d+\.xml$/', $fileName)) {
-                $signatures = array_merge(
-                    $signatures,
-                    $this->createSignatures($this->convertNameToFullPath($fileName))
+                $signatures[] = $this->createSignature(
+                    $this->convertNameToFullPath($fileName)
                 );
             }
         }
@@ -126,33 +125,18 @@ class Envelope implements EnvelopeInterface
     /**
      * Creates a new Signature from the given file.
      *
-     * @todo Looks horrible, refactor this
-     *
      * @param string $path
      *
-     * @return array A list of Signature objects
+     * @return Signature A new Signature object
      *
      * @throws \RuntimeException If the path is not readable
      */
-    private function createSignatures($path)
+    private function createSignature($path)
     {
         if (!$signatureContents = @file_get_contents($path)) {
             throw new \RuntimeException(sprintf('Failed to open signature "%s" for reading.', $path));
         }
 
-        \Symfony\Component\CssSelector\CssSelector::disableHtmlExtension();
-
-        $crawler = new Crawler($signatureContents);
-
-        $signatures = array();
-        foreach ($crawler->filter('ds|Signature ds|X509Certificate') as $certElement) {
-            $cert = Certificate::fromPemWithoutWrappers($certElement->nodeValue);
-
-            $signatures[] = new Signature($this, $cert);
-        }
-
-        \Symfony\Component\CssSelector\CssSelector::enableHtmlExtension();
-
-        return $signatures;
+        return new Signature($this, new DOMDocument($signatureContents));
     }
 }
