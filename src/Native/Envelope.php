@@ -15,125 +15,48 @@ use DOMDocument;
 
 class Envelope
 {
-    /**
-     * @var \ZipArchive
-     */
-    private $archive;
+    const BDOC21 = 0;
+    const SHA256 = 'sha256';
 
-    /**
-     * @var string
-     */
-    private $path;
+    private $files;
 
-    /**
-     * @param string $path
-     */
-    public function __construct($path)
+    private $stamps;
+
+    private $options;
+
+    public function __construct(array $files, array $options)
     {
-        $this->path = $path;
-
-        $this->archive = new \ZipArchive();
-        if (true !== ($error = $this->archive->open($this->path))) {
-            // @todo better exception?
-            throw new \RuntimeException(sprintf('Failed to open archive "%s", ZipArchive code %d', $this->path, $error));
-        }
+        $this->files = $files;
+        $this->stamps = array();
+        $this->options = array_merge(array(
+            'format' => self::BDOC21,
+            'algo' => self::SHA256,
+        ), $options);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getFiles()
+    public function signBy(Signer $signer)
     {
-        $nonMetaNames = array();
-
-        foreach ($this->getAllFileNames() as $fileName) {
-            // Skip metadata files.
-            if (0 === strpos($fileName, 'META-INF/') || 'mimetype' === $fileName) {
-                continue;
-            }
-
-            $nonMetaNames[] = $fileName;
-        }
-
-        return new \ArrayIterator($this->convertNamesToFullPaths($nonMetaNames));
+        // @todo what other stuff should be added to the view and where
+        //       should they be added?
+        return $this->stamps[] = new Stamp($this->createView(), $signer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getStamps()
+    public function write($path)
     {
-        $stamps = array();
+        throw new \Exception('Implement me!');
+    }
 
-        foreach ($this->getAllFileNames() as $fileName) {
-            if (preg_match('/^META-INF\/signatures\d+\.xml$/', $fileName)) {
-                $stamps[] = $this->createStamp($this->convertNameToFullPath($fileName));
-            }
+    private function createView()
+    {
+        $version = $this->options['format'];
+
+        if ($version !== self::BDOC21) {
+            throw new \Exception('Unsupported format');
         }
 
-        return new \ArrayIterator($stamps);
-    }
+        $view = new BDocView();
+        $view->addFileDigests($this->files);
 
-    public function __destruct()
-    {
-        $this->archive->close();
-    }
-
-    /**
-     * @param array $names
-     *
-     * @return array
-     */
-    private function convertNamesToFullPaths($names)
-    {
-        $paths = array();
-
-        foreach ($names as $name) {
-            $paths[] = $this->convertNameToFullPath($name);
-        }
-
-        return $paths;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
-    private function convertNameToFullPath($name)
-    {
-        return sprintf('zip://%s#%s', $this->path, $name);
-    }
-
-    /**
-     * @return array
-     */
-    private function getAllFileNames()
-    {
-        $fileNames = array();
-
-        for ($i = 0; $i < $this->archive->numFiles; $i++) {
-            $fileNames[] = $this->archive->getNameIndex($i);
-        }
-
-        return $fileNames;
-    }
-
-    /**
-     * Creates a new Stamp from the given file.
-     *
-     * @param string $path
-     *
-     * @return Stamp A new Stamp object
-     *
-     * @throws \RuntimeException If the path is not readable
-     */
-    private function createStamp($path)
-    {
-        if (!$signatureContents = @file_get_contents($path)) {
-            throw new \RuntimeException(sprintf('Failed to open signature "%s" for reading.', $path));
-        }
-
-        return new Stamp(new DOMDocument($signatureContents));
+        return $view;
     }
 }
