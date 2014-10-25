@@ -38,7 +38,7 @@ class Envelope
     {
         // @todo what other stuff should be added to the view and where
         //       should they be added?
-        return $this->stamps[] = new Stamp($this->createView(), $signer);
+        return $this->stamps[] = new Stamp($this->createView($signer));
     }
 
     public function write($path)
@@ -46,7 +46,7 @@ class Envelope
         throw new \Exception('Implement me!');
     }
 
-    private function createView()
+    private function createView(Signer $signer)
     {
         $version = $this->options['format'];
 
@@ -54,9 +54,6 @@ class Envelope
             throw new \Exception('Unsupported format');
         }
 
-        $view = new BDocView();
-        $view->addFileDigests($this->files);
-
-        return $view;
+        return BDocView::fromSignerAndFiles($signer, $this->files);
     }
 }

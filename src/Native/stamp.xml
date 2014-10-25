@@ -31,8 +31,10 @@
             <xades:SigningCertificate>
               <xades:Cert>
                 <xades:CertDigest>
-                  <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                  <ds:DigestValue />
+                  <!--
+                       <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                       <ds:DigestValue />
+                    -->
                 </xades:CertDigest>
                 <xades:IssuerSerial>
                   <!--

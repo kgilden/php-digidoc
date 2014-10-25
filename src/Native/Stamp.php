@@ -15,12 +15,9 @@ class Stamp
 {
     private $view;
 
-    private $signer;
-
-    public function __construct(BDocView $view, Signer $signer)
+    public function __construct(BDocView $view)
     {
         $this->view = $view;
-        $this->signer = $signer;
     }
 
     public function getChallenge()

@@ -44,13 +44,33 @@ class Cert
         return new static($pem);
     }
 
-    public function __toString()
+    public function toParsed()
     {
         return print_r(openssl_x509_parse($this->x509Cert), true);
+    }
+
+    public function __toString()
+    {
+        // @todo this function may fail.
+        openssl_x509_export($this->x509Cert, $x509CertData);
+
+        return $this->pem2der($x509CertData);
     }
 
     public function __destruct()
     {
         openssl_x509_free($this->x509Cert);
+    }
+
+    /**
+     * Source: http://php.net/manual/en/ref.openssl.php
+     */
+    private function pem2der($pem_data) {
+        $begin = "CERTIFICATE-----";
+        $end   = "-----END";
+        $pem_data = substr($pem_data, strpos($pem_data, $begin) + strlen($begin));
+        $pem_data = substr($pem_data, 0, strpos($pem_data, $end));
+
+        return  base64_decode($pem_data);
     }
 }
