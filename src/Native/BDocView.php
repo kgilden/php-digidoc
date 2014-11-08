@@ -169,15 +169,29 @@ class BDocView
             throw new \Exception(sprintf('Unsupported algo "%s", supporting "%s".', $algo, implode('", "', array_keys($algoMap))));
         }
 
-        $digestMethod = $this->dom->createElementNS($parent->namespaceURI, $parent->prefix . ':DigestMethod');
+        $digestMethod = $this->createDsElement('DigestMethod');
         $digestMethod->setAttribute('Algorithm', $algoMap[$algo]);
         $parent->appendChild($digestMethod);
 
-        $digestValue = $this->dom->createElementNS(
-            $parent->namespaceURI,
-            $parent->prefix . ':DigestValue',
-            chunk_split(base64_encode($digest), 64, "\n")
-        );
+        $digestValue = $this->createDsElement('DigestValue', chunk_split(base64_encode($digest), 64, "\n"));
         $parent->appendChild($digestValue);
+    }
+
+    /**
+     * Creates an element under the "ds" namespace.
+     *
+     * @param string      $name  The tag name of the element
+     * @param string|null $value The value of the element, by default an empty element will be created
+     *
+     * @see http://php.net/manual/en/domdocument.createelement.php
+     *
+     * @return \DomElement or false if an error occurred
+     */
+    private function createDsElement($name, $value = null)
+    {
+        $dsNamespaceUrl = $this->dom->getAttribute('xmlns:ds');
+        $qualifiedName = 'ds:'.$name;
+
+        return $this->dom->createElementNS($dsNamespaceUrl, $name, $value);
     }
 }
