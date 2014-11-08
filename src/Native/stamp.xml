@@ -52,7 +52,7 @@
                 </xades:SigPolicyId>
                 <xades:SigPolicyHash>
                   <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                  <ds:DigestValue />
+                  <ds:DigestValue>3Tl1oILSvOAWomdI9VeWV6IA/32eSXRUri9kPEz1IVs=</ds:DigestValue>
                 </xades:SigPolicyHash>
                 <xades:SigPolicyQualifiers>
                   <xades:SigPolicyQualifier>
