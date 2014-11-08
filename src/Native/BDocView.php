@@ -16,9 +16,9 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 class BDocView
 {
     const XPATH_FILE_REFS = '/asic:XAdESSignatures/ds:Signature/ds:SignedInfo';
-    const XPATH_FILE_FORMATS = '/asic:XAdESSignatures/ds:Signature/xades:SignedDataObjectProperties';
+    const XPATH_FILE_FORMATS = '/asic:XAdESSignatures/ds:Signature//xades:SignedDataObjectProperties';
     const XPATH_SIGNATURE = '/asic:XAdESSignatures/ds:Signature/ds:SignatureValue';
-    const XPATH_DATA_TO_SIGN = '/asic:XAdESSignatures/ds:Signature/ds:SignedProperties';
+    const XPATH_DATA_TO_SIGN = '/asic:XAdESSignatures/ds:Signature//xades:SignedProperties';
     const XPATH_SIGNER_CERT = '/asic:XAdESSignatures/ds:Signature/ds:KeyInfo//ds:X509Certificate';
     const XPATH_SIGNER_CERT_DIGEST = '/asic:XAdESSignatures//xades:CertDigest';
     const XPATH_SIGNER_ROLE = '/asic:XAdESSignatures//xades:ClaimedRole';
@@ -126,11 +126,9 @@ class BDocView
         // @todo algorithm is hard-coded
         $this->appendDigest($refParent, 'sha256', hash_file('sha256', $pathToFile, true));
 
-        $ref = $this->dom
-            ->createElementNS($refParent->namespaceURI, $refParent->prefix . ':Reference')
-            ->setAttribute('Id', $refId = uniqid())
-            ->setAttribute('URI', $pathInEnvelope)
-        ;
+        $ref = $this->dom->createElementNS($refParent->namespaceURI, $refParent->prefix . ':Reference');
+        $ref->setAttribute('Id', $refId = uniqid());
+        $ref->setAttribute('URI', $pathInEnvelope);
 
         $refParent->appendChild($ref);
 
@@ -148,11 +146,9 @@ class BDocView
             MimeTypeGuesser::getInstance()->guess($pathToFile) ?: 'application/octet-stream'
         );
 
-        $format = $this->dom
-            ->createElementNS($parent->namespaceURI, $parent->prefix . ':DataObjectFormat')
-            ->setAttribute('ObjectReference', '#' . $refId)
-            ->appendChild($mimeType)
-        ;
+        $format = $this->dom->createElementNS($parent->namespaceURI, $parent->prefix . ':DataObjectFormat');
+        $format->setAttribute('ObjectReference', '#' . $refId);
+        $format->appendChild($mimeType);
 
         $parent->appendChild($format);
     }
@@ -173,20 +169,15 @@ class BDocView
             throw new \Exception(sprintf('Unsupported algo "%s", supporting "%s".', $algo, implode('", "', array_keys($algoMap))));
         }
 
-        $digestMethod = $this->dom
-            ->createElementNS($parent->namespaceURI, $parent->prefix . ':DigestMethod')
-            ->setAttribute('Algorithm', $algoMap[$algo])
-        ;
+        $digestMethod = $this->dom->createElementNS($parent->namespaceURI, $parent->prefix . ':DigestMethod');
+        $digestMethod->setAttribute('Algorithm', $algoMap[$algo]);
+        $parent->appendChild($digestMethod);
 
         $digestValue = $this->dom->createElementNS(
             $parent->namespaceURI,
             $parent->prefix . ':DigestValue',
             chunk_split(base64_encode($digest), 64, "\n")
         );
-
-        $parent
-            ->appendChild($digestMethod)
-            ->appendChild($digestValue)
-        ;
+        $parent->appendChild($digestValue);
     }
 }
