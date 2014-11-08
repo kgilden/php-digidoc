@@ -123,12 +123,12 @@ class BDocView
         // @todo what if none or too many nodes found?
         $refParent = $this->xpath->query(self::XPATH_FILE_REFS)->item(0);
 
-        // @todo algorithm is hard-coded
-        $this->appendDigest($refParent, 'sha256', hash_file('sha256', $pathToFile, true));
-
         $ref = $this->dom->createElementNS($refParent->namespaceURI, $refParent->prefix . ':Reference');
         $ref->setAttribute('Id', $refId = uniqid());
         $ref->setAttribute('URI', $pathInEnvelope);
+
+        // @todo algorithm is hard-coded
+        $this->appendDigest($ref, 'sha256', hash_file('sha256', $pathToFile, true));
 
         $refParent->appendChild($ref);
 
