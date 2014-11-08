@@ -23,6 +23,7 @@ class BDocView
     const XPATH_SIGNER_CERT_DIGEST = '/asic:XAdESSignatures//xades:CertDigest';
     const XPATH_SIGNER_ROLE = '/asic:XAdESSignatures//xades:ClaimedRole';
     const XPATH_SIGNATURE_LOCATION = '/asic:XAdESSignatures//xades:SignatureProductionPlace';
+    const XPATH_SIGNATURE_TIMESTAMP = '/asic:XAdESSignatures//xades:SigningTime';
 
     private $dom;
 
@@ -41,9 +42,26 @@ class BDocView
 
         $view = new static($dom);
         $view->setSigner($signer);
+        $view->setTimestamp(new \DateTime());
         $view->addFileDigests($files);
 
         return $view;
+    }
+
+    /**
+     * Sets the time when the signature was given.
+     *
+     * @todo make sure the document hasn't been signed yet
+     *
+     * @param \DateTime $time
+     */
+    public function setTimestamp(\DateTime $timestamp)
+    {
+        $timestamp->setTimeZone(new \DateTimeZone('UTC'));
+
+        // @todo what if none or too many nodes found?
+        $element = $this->xpath->query(self::XPATH_SIGNATURE_TIMESTAMP)->item(0);
+        $element->nodeValue = $timestamp->format(\DateTime::ISO8601);
     }
 
     public function setSigner(Signer $signer)
