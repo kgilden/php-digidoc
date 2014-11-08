@@ -24,7 +24,7 @@ class Envelope
 
     private $options;
 
-    public function __construct(array $files, array $options)
+    public function __construct(array $files, array $options = array())
     {
         $this->files = $files;
         $this->stamps = array();
