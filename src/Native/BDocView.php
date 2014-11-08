@@ -73,7 +73,7 @@ class BDocView
             'City' => $location->getCity(),
             'StateOrProvince' => $location->getStateOrProvince(),
             'PostalCode' => $location->getPostalCode(),
-            'CountryName' => $location->getCountryName(),
+            'CountryName' => $location->getCountry(),
         );
 
         $element = $this->xpath->query(self::XPATH_SIGNATURE_LOCATION)->item(0);
