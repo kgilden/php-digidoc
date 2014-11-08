@@ -53,7 +53,7 @@ class BDocView
         // 1) set the certificate
         // @todo what if none or too many nodes found?
         $element = $this->xpath->query(self::XPATH_SIGNER_CERT)->item(0);
-        $element->nodeValue = chunk_split(base64_encode($certInDer), 64, "\n");
+        $element->nodeValue = chunk_split(base64_encode($certInDer), 60, "\n");
 
         // 2) set the certificate digest
         // @todo what if none or too many nodes found?
@@ -93,7 +93,7 @@ class BDocView
         // @todo what if none or too many nodes found?
         // @todo algorithm is hard-coded
         $element = $this->xpath->query(self::XPATH_SIGNATURE)->item(0);
-        $element->nodeValue = chunk_split(base64_encode(hash('sha256', $signature, true)), 64, "\n");
+        $element->nodeValue = chunk_split(base64_encode(hash('sha256', $signature, true)), 60, "\n");
         $element->setAttribute('Id', $signatureId = uniqid());
 
         return $signatureId;
@@ -173,7 +173,7 @@ class BDocView
         $digestMethod->setAttribute('Algorithm', $algoMap[$algo]);
         $parent->appendChild($digestMethod);
 
-        $digestValue = $this->createDsElement('DigestValue', chunk_split(base64_encode($digest), 64, "\n"));
+        $digestValue = $this->createDsElement('DigestValue', chunk_split(base64_encode($digest), 60, "\n"));
         $parent->appendChild($digestValue);
     }
 
