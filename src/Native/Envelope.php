@@ -38,7 +38,7 @@ class Envelope
     {
         // @todo what other stuff should be added to the view and where
         //       should they be added?
-        return $this->stamps[] = new Stamp($this->createView($signer));
+        return $this->stamps[] = new Stamp($signer, $this->createView($signer));
     }
 
     public function write($path)

@@ -13,11 +13,34 @@ namespace KG\DigiDoc\Native;
 
 class Stamp
 {
+    /**
+     * @var Signer
+     */
+    private $signer;
+
+    /**
+     * @var BDocView
+     */
     private $view;
 
-    public function __construct(BDocView $view)
+    /**
+     * @param Signer   $signer
+     * @param BDocView $view
+     */
+    public function __construct(Signer $signer, BDocView $view)
     {
+        $this->signer = $signer;
         $this->view = $view;
+    }
+
+    /**
+     * Gets the signer who should be giving the signature.
+     *
+     * @return Signer
+     */
+    public function getSigner()
+    {
+        return $this->signer;
     }
 
     public function getChallenge()
