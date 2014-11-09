@@ -207,7 +207,7 @@ class BDocView
      */
     private function createDsElement($name, $value = null)
     {
-        $dsNamespaceUrl = $this->dom->getAttribute('xmlns:ds');
+        $dsNamespaceUrl = $this->dom->documentElement->getAttribute('xmlns:ds');
         $qualifiedName = 'ds:'.$name;
 
         return $this->dom->createElementNS($dsNamespaceUrl, $name, $value);
