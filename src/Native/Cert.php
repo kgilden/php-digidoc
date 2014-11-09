@@ -44,9 +44,19 @@ class Cert
         return new static($pem);
     }
 
+    /**
+     * @return string Issuer's Common Name
+     */
+    public function getIssuerCN()
+    {
+        $parsedCert = $this->getParsed();
+
+        return $parsedCert['issuer']['CN'];
+    }
+
     public function toParsed()
     {
-        return print_r(openssl_x509_parse($this->x509Cert), true);
+        return print_r($this->getParsed(), true);
     }
 
     public function __toString()
@@ -72,5 +82,10 @@ class Cert
         $pem_data = substr($pem_data, 0, strpos($pem_data, $end));
 
         return  base64_decode($pem_data);
+    }
+
+    private function getParsed()
+    {
+        return openssl_x509_parse($this->x509Cert);
     }
 }

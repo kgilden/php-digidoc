@@ -29,6 +29,12 @@ class CertTest extends \PHPUnit_Framework_TestCase
         $cert = new Cert($this->getCertData());
     }
 
+    public function testGetIssuerCN()
+    {
+        $cert = new Cert($this->getCertData());
+        $this->assertSame('ESTEID-SK 2011', $cert->getIssuerCN());
+    }
+
     public function testToStringReturnsDerFormat()
     {
         $cert = new Cert($this->getCertData());
