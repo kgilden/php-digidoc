@@ -54,14 +54,13 @@ class Stamp
     }
 
     /**
-     * @param string $signature raw binary signature
+     * @param string $signature    raw binary signature
+     * @param string $ocspResponse DER-encoded OCSP certificate response
      */
-    public function sign($signature)
+    public function sign($signature, $ocspResponse)
     {
         // @todo verify before happily adding it?
         $this->view->addSignature(base64_encode($signature));
-
-        // @todo make OCSP request
-        $bytesToSend;
+        $this->view->addOcspResponse($ocspResponse);
     }
 }

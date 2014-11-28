@@ -24,6 +24,7 @@ class BDocView
     const XPATH_SIGNER_ROLE = '/asic:XAdESSignatures//xades:ClaimedRole';
     const XPATH_SIGNATURE_LOCATION = '/asic:XAdESSignatures//xades:SignatureProductionPlace';
     const XPATH_SIGNATURE_TIMESTAMP = '/asic:XAdESSignatures//xades:SigningTime';
+    const XPATH_OCSP_RESPONSE = '/asic:XAdESSignatures//xades:EncapsulatedOCSPValue';
 
     private $dom;
 
@@ -115,6 +116,20 @@ class BDocView
         $element->setAttribute('Id', $signatureId = uniqid());
 
         return $signatureId;
+    }
+
+    /**
+     * Adds an OCSP response to the body.
+     *
+     * @param string $ocspResponse DER-encoded OCSP certificate response
+     */
+    public function addOcspResponse($ocspResponse)
+    {
+        // @todo what if none or too many nodes found
+        // @todo create XPath
+        $element = $this->xpath->query(self::XPATH_OCSP_RESPONSE)->item(0);
+        $element->nodeValue = chunk_split(base64_encode($ocspResponse), 60, "\n");
+        $element->setAttribute('Id', uniqid());
     }
 
     public function addFileDigests($files)
