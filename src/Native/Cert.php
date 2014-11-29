@@ -59,12 +59,17 @@ class Cert
         return print_r($this->getParsed(), true);
     }
 
-    public function __toString()
+    public function toPem()
     {
         // @todo this function may fail.
         openssl_x509_export($this->x509Cert, $x509CertData);
 
-        return $this->pem2der($x509CertData);
+        return $x509CertData;
+    }
+
+    public function __toString()
+    {
+        return $this->pem2der($this->toPem());
     }
 
     public function __destruct()
