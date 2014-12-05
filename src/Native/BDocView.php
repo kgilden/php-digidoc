@@ -18,7 +18,8 @@ class BDocView
     const XPATH_FILE_REFS = '/asic:XAdESSignatures/ds:Signature/ds:SignedInfo';
     const XPATH_FILE_FORMATS = '/asic:XAdESSignatures/ds:Signature//xades:SignedDataObjectProperties';
     const XPATH_SIGNATURE = '/asic:XAdESSignatures/ds:Signature/ds:SignatureValue';
-    const XPATH_DATA_TO_SIGN = '/asic:XAdESSignatures/ds:Signature//xades:SignedProperties';
+    const XPATH_DATA_TO_SIGN = '/asic:XAdESSignatures/ds:Signature//ds:SignedInfo';
+    const XPATH_SIGNED_PROPERTIES = '/asic:XAdESSignatures/ds:Signature//xades:SignedProperties';
     const XPATH_SIGNER_CERT = '/asic:XAdESSignatures/ds:Signature/ds:KeyInfo//ds:X509Certificate';
     const XPATH_SIGNER_CERT_DIGEST = '/asic:XAdESSignatures//xades:CertDigest';
     const XPATH_SIGNER_ROLE = '/asic:XAdESSignatures//xades:ClaimedRole';
@@ -41,10 +42,14 @@ class BDocView
         $dom = new \DomDocument();
         $dom->load(__DIR__ . '/stamp.xml');
 
+        // @todo make sure https://www.sk.ee/repository/bdoc-spec21.pdf
+        // matches the digest in SigPolicyHash.
+
         $view = new static($dom);
         $view->setSigner($signer);
         $view->setTimestamp(new \DateTime());
         $view->addFileDigests($files);
+        $view->addSignedPropertiesDigest();
 
         return $view;
     }
@@ -101,6 +106,9 @@ class BDocView
         }
     }
 
+    /**
+     * @return string
+     */
     public function getDataToSign()
     {
         // @todo what if none or too many nodes found?
@@ -149,6 +157,29 @@ class BDocView
     public function __toString()
     {
         throw new \Exception('Implement me!');
+    }
+
+    /**
+     * Adds a digest of canonoicalized signed properties to the dom.
+     */
+    private function addSignedPropertiesDigest()
+    {
+        // @todo what if none or too many nodes found
+        $dataToDigest = $this->xpath->query(self::XPATH_SIGNED_PROPERTIES)->item(0)->c14n();
+
+        // @todo what if none or too many nodes found
+        // @todo XPATH_FILE_REFS is not a good name for this
+        $refParent = $this->xpath->query(self::XPATH_FILE_REFS)->item(0);
+
+        $ref = $this->dom->createElementNS($refParent->namespaceURI, $refParent->prefix . ':Reference');
+        $ref->setAttribute('Id', $refId = uniqid());
+        $ref->setAttribute('Type', 'http://uri.etsi.org/01903#SignedProperties');
+        // @todo generate an id for SignedProperties
+        $ref->setAttribute('URI', '#todo-id-of-SignedProperties');
+
+        $this->appendDigest($ref, 'sha256', hash('sha256', $dataToDigest, true));
+
+        $refParent->appendChild($ref);
     }
 
     private function addFileReference($pathToFile, $pathInEnvelope)
