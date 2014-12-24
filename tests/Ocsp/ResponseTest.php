@@ -11,6 +11,7 @@ namespace KG\Tests\DigiDoc\Ocsp;
  * file that was distributed with this source code.
  */
 
+use KG\DigiDoc\Ocsp\Asn1;
 use KG\DigiDoc\Ocsp\Response;
 
 class ResponseTest extends \PHPUnit_Framework_TestCase
@@ -31,7 +32,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $response = new Response($this->getResponseBer());
 
-        $this->assertSame(RESPONSE::OCSP_SUCCESSFUL, $response->getStatus());
+        $this->assertSame(Asn1::OCSP_SUCCESSFUL, $response->getStatus());
     }
 
     /**
