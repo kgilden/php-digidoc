@@ -22,62 +22,42 @@ use phpseclib\File\X509 as BaseAsn1;
 class Asn1
 {
     /**
-     * AlgorithmIdentifier  ::=  SEQUENCE  {
-     *      algorithm               OBJECT IDENTIFIER,
-     *      parameters              ANY DEFINED BY algorithm OPTIONAL  }
-     *                                 -- contains a value of the type
-     *                                 -- registered for use with the
-     *                                 -- algorithm object identifier value
+     * @see https://tools.ietf.org/html/rfc5280#section-4.1.1.2
      *
      * @var array
      */
     public $AlgorithmIdentifier;
 
     /**
-     * Certificate  ::=  SEQUENCE  {
-     *      tbsCertificate       TBSCertificate,
-     *      signatureAlgorithm   AlgorithmIdentifier,
-     *      signatureValue       BIT STRING  }
+     * @see https://tools.ietf.org/html/rfc5280#section-4.1
      *
      * @var array
      */
     public $Certificate;
 
     /**
-     * CertificateSerialNumber  ::=  INTEGER
+     * @see https://tools.ietf.org/html/rfc5280#section-4.1
      *
      * @var array
      */
     public $CertificateSerialNumber;
 
     /**
-     * CRLReason ::= ENUMERATED {
-     *      unspecified             (0),
-     *      keyCompromise           (1),
-     *      cACompromise            (2),
-     *      affiliationChanged      (3),
-     *      superseded              (4),
-     *      cessationOfOperation    (5),
-     *      certificateHold         (6),
-     *           -- value 7 is not used
-     *      removeFromCRL           (8),
-     *      privilegeWithdrawn      (9),
-     *      aACompromise           (10) }
+     * @see https://tools.ietf.org/html/rfc5280#section-5.3.1
      *
      * @var array
      */
     public $CRLReason;
 
     /**
-     * Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
+     * @see https://tools.ietf.org/html/rfc5280#section-4.1
      *
      * @var array
      */
     public $Extensions;
 
     /**
-     * Name ::= CHOICE { -- only one possibility for now --
-     *       rdnSequence  RDNSequence
+     * @see https://tools.ietf.org/html/rfc5280#section-4.1.2.4
      *
      * @var array
      */

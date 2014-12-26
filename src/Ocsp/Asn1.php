@@ -32,121 +32,79 @@ class Asn1
     const OID_OCSP_NONCE = '1.3.6.1.5.5.7.48.1.2';
 
     /**
-     * BasicOCSPResponse ::= SEQUENCE {
-     *     tbsResponseData         ResponseData,
-     *     signatureAlgorithm      AlgorithmIdentifier,
-     *     signature               BIT STRING,
-     *     certs               [0] EXPLICIT SEQUENCE OF Certificate OPTIONAL
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
+     *
+     * @var array
      */
     public $BasicOCSPResponse;
 
     /**
-     * CertID ::= SEQUENCE {
-     *     hashAlgorithm       AlgorithmIdentifier {DIGEST-ALGORITHM, {...}},
-     *     issuerNameHash      OCTET STRING, -- Hash of issuer's DN
-     *     issuerKeyHash       OCTET STRING, -- Hash of issuer's public key
-     *     serialNumber        CertificateSerialNumber
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.1.1
      *
      * @var array
      */
     public $CertID;
 
     /**
-     * CertStatus ::= CHOICE {
-     *     good                [0] IMPLICIT NULL,
-     *     revoked             [1] IMPLICIT RevokedInfo,
-     *     unknown             [2] IMPLICIT UnknownInfo
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */
     public $CertStatus;
 
     /**
-     * OCSPResponse ::= SEQUENCE {
-     *     responseStatus          OCSPResponseStatus,
-     *     responseBytes       [0] EXPLICIT ResponseBytes OPTIONAL
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */
     public $OCSPResponse;
 
     /**
-     * OCSPResponseStatus ::= ENUMERATED {
-     *     successful          (0),  -- Response has valid confirmations
-     *     malformedRequest    (1),  -- Illegal confirmation request
-     *     internalError       (2),  -- Internal error in issuer
-     *     tryLater            (3),  -- Try again later
-     *                               -- (4) is not used
-     *     sigRequired         (5),  -- Must sign the request
-     *     unauthorized        (6)   -- Request unauthorized
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */
     public $OCSPResponseStatus;
 
     /**
-     * ResponderID ::= CHOICE {
-     *     byName              [1] Name,
-     *     byKey               [2] KeyHash
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.2.3
      *
      * @var array
      */
     public $ResponderID;
 
     /**
-     * ResponseBytes ::= SEQUENCE {
-     *     responseType            OBJECT IDENTIFIER,
-     *     response                OCTET STRING
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */
     public $ResponseBytes;
 
     /**
-     * ResponseData ::= SEQUENCE {
-     *     version             [0] EXPLICIT Version DEFAULT v1,
-     *     responderID             ResponderID,
-     *     producedAt              GeneralizedTime,
-     *     responses               SEQUENCE OF SingleResponse,
-     *     responseExtensions  [1] EXPLICIT Extensions OPTIONAL
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */
     public $ResponseData;
 
     /**
-     * RevokedInfo ::= SEQUENCE {
-     *     revocationTime          GeneralizedTime,
-     *     revocationReason    [0] EXPLICIT CRLReason OPTIONAL
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */
     public $RevokedInfo;
 
     /**
-     * SingleResponse ::= SEQUENCE {
-     *     certID                  CertID,
-     *     certStatus              CertStatus,
-     *     thisUpdate              GeneralizedTime,
-     *     nextUpdate          [0] EXPLICIT GeneralizedTime OPTIONAL,
-     *     singleExtensions    [1] EXPLICIT Extensions{{re-ocsp-crl | re-ocsp-archive-cutoff | CrlEntryExtensions, ...}} OPTIONAL
-     * }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.2.3
      *
      * @var array
      */
     public $SingleResponse;
 
     /**
-     * Version ::= INTEGER { v1(0) }
+     * @see https://tools.ietf.org/html/rfc6960#section-4.1.1
      *
      * @var array
      */
