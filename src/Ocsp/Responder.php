@@ -66,6 +66,17 @@ class Responder
      */
     public function handle(Request $request)
     {
+        // @todo what about response verification?
+        return $this->makeRequest($request);
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
+    private function makeRequest(Request $request)
+    {
         $pathToResponse = tempnam($this->tempDir, 'php-digidoc');
 
         $process = $this->createProcess($request, $pathToResponse);
