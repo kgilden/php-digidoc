@@ -41,6 +41,50 @@ class CertTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(bin2hex($this->getCertInDer()), bin2hex((string) $cert));
     }
 
+    public function testHasSignedPassesPublicKeyToSignature()
+    {
+        $testCase = $this;
+
+        $signature = $this->getMockSignature();
+        $signature
+            ->expects($this->once())
+            ->method('isSignedByKey')
+            ->will($this->returnCallback(function ($key) use ($testCase) {
+
+                $testCase->assertEquals('OpenSSL key', get_resource_type($key));
+
+                $expectedKey =
+                    "-----BEGIN PUBLIC KEY-----\n" .
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0QQstOYZrcQvzPCbh4HD\n" .
+                    "SQjGJMOWs3OzZ1kDbM8cyrF+jqiCdWq5vWU/ThGYmz6h+ZF4nipFOhTPPROsoeEL\n" .
+                    "4uaCSxhvCBP2C2UtQBcvKCwSj+6J9adgxoIqwE6EIMRTx2b+tytxapBTbkSWBObr\n" .
+                    "tvcTuRlhXVqVI6+X8lFXmM7YEKHbsYjCJ21FlN850FrVh65uzUB3Q9Ghr1exkwi1\n" .
+                    "JSvZYn6AygEpjfLCCLBbHcg7MdzQoGOAICfOJgb+kxPwrBOmbkIVXWi6y5ap0oEN\n" .
+                    "fYgk5hNHiQZoJPQebKb7Hs8ehDhrC4wLLjqdjQtYQKZlmLOS8TOHn1sRh3a6s/qB\n" .
+                    "lwIDAQAB\n" .
+                    "-----END PUBLIC KEY-----\n"
+                ;
+
+                $details = openssl_pkey_get_details($key);
+                $this->assertEquals($expectedKey, $details['key']);
+
+                return true;
+            }))
+        ;
+
+        $cert = new Cert($this->getCertData());
+        $this->assertTrue($cert->hasSigned($signature));
+    }
+
+    private function getMockSignature()
+    {
+        return $this
+            ->getMockBuilder('KG\DigiDoc\X509\Signature')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;;
+    }
+
     private function getCertData()
     {
         return file_get_contents(__DIR__ . '/../fixtures/39104040377.cer');

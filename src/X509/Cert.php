@@ -45,6 +45,27 @@ class Cert
     }
 
     /**
+     * @param Signature $signature
+     *
+     * @return boolean Whether the signature has been signed by this certificate
+     */
+    public function hasSigned(Signature $signature)
+    {
+        $key = openssl_pkey_get_public($this->x509Cert);
+
+        try {
+            $hasSigned = $signature->isSignedByKey($key);
+        } catch (\Excetpion $e) {
+            openssl_pkey_free($key);
+            throw $e;
+        }
+
+        openssl_pkey_free($key);
+
+        return $hasSigned;
+    }
+
+    /**
      * @return string Issuer's Common Name
      */
     public function getIssuerCN()
