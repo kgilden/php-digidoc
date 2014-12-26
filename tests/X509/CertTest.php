@@ -66,7 +66,7 @@ class CertTest extends \PHPUnit_Framework_TestCase
                 ;
 
                 $details = openssl_pkey_get_details($key);
-                $this->assertEquals($expectedKey, $details['key']);
+                $testCase->assertEquals($expectedKey, $details['key']);
 
                 return true;
             }))
