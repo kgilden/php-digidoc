@@ -29,6 +29,16 @@ class Response
     private $content;
 
     /**
+     * @var integer
+     */
+    private $status;
+
+    /**
+     * @var array
+     */
+    private $response;
+
+    /**
      * @param string    $content
      * @param Asn1|null $asn1    ASN.1 mapping of OCSP
      */
@@ -36,6 +46,28 @@ class Response
     {
         $this->content = $content;
         $this->asn1 = $asn1 ?: new Asn1();
+
+        $parser = new Asn1Parser();
+
+        $responseDecoded = $parser->decodeBER($content);
+        $responseMapped = $parser->asn1map($responseDecoded[0], $this->asn1->OCSPResponse);
+
+        $status = $responseMapped['responseStatus'];
+
+        if ($status !== Asn1::OCSP_SUCCESSFUL) {
+            // @todo create a better exception for this (also update ResponderTest).
+            throw new \InvalidArgumentException(sprintf('The OCSP response status was not "successful (0)", got %d instead, see "%s" for more.', $status, 'https://tools.ietf.org/html/rfc6960#section-4.2.1'));
+        }
+
+        $bytes = $responseMapped['responseBytes'];
+
+        if ($bytes['responseType'] !== Asn1::OID_ID_PKIX_OCSP_BASIC) {
+            // @todo create a better exception for this (also update ResponderTest).
+            throw new \InvalidArgumentException(sprintf('Unknown response type "%s".', $bytes['responseType']));
+        }
+
+        $this->status = $status;
+        $this->response = $bytes['response'];
     }
 
     /**
@@ -45,12 +77,7 @@ class Response
      */
     public function getStatus()
     {
-        $parser = new Asn1Parser();
-
-        $responseDecoded = $parser->decodeBER($this->getContent());
-        $responseMapped = $parser->asn1map($responseDecoded[0], $this->asn1->OCSPResponse);
-
-        return $responseMapped['responseStatus'];
+        return $this->status;
     }
 
     /**
@@ -86,12 +113,7 @@ class Response
     {
         $parser = new Asn1Parser();
 
-        $responseDecoded = $parser->decodeBER($this->getContent());
-        $responseMapped = $parser->asn1map($responseDecoded[0], $this->asn1->OCSPResponse);
-
-        $parser = new Asn1Parser();
-        // @todo make sure to check for response type too!
-        $responseBasicDecoded = $parser->decodeBER(base64_decode($responseMapped['responseBytes']['response']));
+        $responseBasicDecoded = $parser->decodeBER(base64_decode($this->response));
         $responseBasicMapped = $parser->asn1map($responseBasicDecoded[0], $this->asn1->BasicOCSPResponse);
 
         foreach ($responseBasicMapped['tbsResponseData']['responseExtensions'] as $extension) {

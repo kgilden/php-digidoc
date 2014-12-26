@@ -13,19 +13,46 @@ namespace KG\Tests\DigiDoc\Ocsp;
 
 use KG\DigiDoc\Ocsp\Asn1;
 use KG\DigiDoc\Ocsp\Response;
+use phpseclib\File\ASN1 as Asn1Parser;
 
 class ResponseTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage The OCSP response status was not "successful (0)", got 2 instead
+     */
+    public function testConstructFailsIfResponseStatusNotSuccessful()
+    {
+        new Response($this->createDerResponse(array(
+            'responseStatus' => Asn1::OCSP_INTERNAL_ERROR
+        )));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Unknown response type "1.3.6"
+     */
+    public function testConstructFailsIfUnknownResponseType()
+    {
+        new Response($this->createDerResponse(array(
+            'responseStatus' => Asn1::OCSP_SUCCESSFUL,
+            'responseBytes' => array(
+                'responseType' => '1.3.6', // some random OID
+                'response' => base64_encode('Hello, world!'),
+            ),
+        )));
+    }
+
     public function testGetContent()
     {
-        $response = new Response('foo');
-        $this->assertEquals('foo', $response->getContent());
+        $response = new Response($content = $this->getResponseBer());
+        $this->assertEquals($content, $response->getContent());
     }
 
     public function testResponseImplementsToString()
     {
-        $response = new Response('foo');
-        $this->assertEquals('foo', (string) $response);
+        $response = new Response($content = $this->getResponseBer());
+        $this->assertEquals($content, (string) $response);
     }
 
     public function testGetStatusReturnsInteger()
@@ -43,6 +70,21 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response = new Response($this->getResponseBer());
 
         $this->assertTrue($response->isNonceEqualTo(pack("H*" , '0410c3204485aa9860df89c81b858fb09cd8')));
+    }
+
+    /**
+     * Creates a DER response for testing
+     *
+     * @param mixed $source
+     *
+     * @return string
+     */
+    private function createDerResponse($source)
+    {
+        $parser = new Asn1Parser();
+        $asn1 = new Asn1();
+
+        return $parser->encodeDER($source, $asn1->OCSPResponse);
     }
 
     private function getResponseBer()

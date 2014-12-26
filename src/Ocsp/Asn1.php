@@ -33,6 +33,11 @@ class Asn1
 
     /**
      * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
+     */
+    const OID_ID_PKIX_OCSP_BASIC = '1.3.6.1.5.5.7.48.1.1';
+
+    /**
+     * @see https://tools.ietf.org/html/rfc6960#section-4.2.1
      *
      * @var array
      */

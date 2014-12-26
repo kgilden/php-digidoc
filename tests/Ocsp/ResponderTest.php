@@ -11,8 +11,10 @@
 
 namespace KG\DigiDoc\Tests\Ocsp;
 
+use KG\DigiDoc\Ocsp\Asn1;
 use KG\DigiDoc\Ocsp\Responder;
 use org\bovigo\vfs\vfsStream;
+use phpseclib\File\ASN1 as Asn1Parser;
 
 class ResponderTest extends \PHPUnit_Framework_TestCase
 {
@@ -51,7 +53,12 @@ class ResponderTest extends \PHPUnit_Framework_TestCase
         $request->method('getPathToIssuerCert')->willReturn($pathToIssuerCert);
 
         $responder = new Responder($url, $pathToResponderCert, vfsStream::url('root'), $process);
-        $responder->handle($request);
+
+        try {
+            $responder->handle($request);
+        } catch (\Exception $e) {
+            // Ignore exceptions thrown by Response.
+        }
     }
 
     /**
@@ -80,6 +87,23 @@ class ResponderTest extends \PHPUnit_Framework_TestCase
 
         $process = $this->getMockProcess();
         $process->method('isSuccessful')->willReturn(true);
+        $process->method('setCommandLine')->will($this->returnCallback(function ($commandLine) {
+            // NB! This assumes the outfile is the last argument. If things go
+            // south, assume somone has fiddled with the argument order.
+            $commandLine = explode('-respout', $commandLine);
+            $fileName = trim(end($commandLine), '\' ');
+
+            $parser = new Asn1Parser();
+            $asn1 = new Asn1();
+
+            file_put_contents($fileName, $parser->encodeDER(array(
+                'responseStatus' => Asn1::OCSP_SUCCESSFUL,
+                'responseBytes' => array(
+                    'responseType' => Asn1::OID_ID_PKIX_OCSP_BASIC,
+                    'response' => base64_encode('Hello, world!'),
+                ),
+            ), $asn1->OCSPResponse));
+        }));
 
         $responder = new Responder('http://example.com', $pathToResponderCert, null, $process);
         $response = $responder->handle($this->getMockRequest());
