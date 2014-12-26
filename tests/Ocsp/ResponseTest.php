@@ -62,14 +62,24 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(Asn1::OCSP_SUCCESSFUL, $response->getStatus());
     }
 
-    /**
-     * @group foo
-     */
     public function testNonceCorrect()
     {
         $response = new Response($this->getResponseBer());
 
         $this->assertTrue($response->isNonceEqualTo(pack("H*" , '0410c3204485aa9860df89c81b858fb09cd8')));
+    }
+
+    public function testSignedByDelegatesToCert()
+    {
+        $cert = $this->getMockCert();
+        $cert
+            ->expects($this->once())
+            ->method('hasSigned')
+            ->will($this->returnValue(true))
+        ;
+
+        $response = new Response($this->getResponseBer());
+        $this->assertTrue($response->isSignedBy($cert));
     }
 
     /**
@@ -102,5 +112,14 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
             '/0FZ1h8xFp6Yiu4Bp3il5Um1YSnUXHxLtA4ScZ+vMI9n0aFmQJBdxrq/7Kd3GsPcOcWlgiSaqTgA' .
             'V9uaoOe/hQSF1O/MC8dpTzhClAfaPCiU6lVa2yUn8JIV'
         );
+    }
+
+    private function getMockCert()
+    {
+        return $this
+            ->getMockBuilder('KG\DigiDoc\X509\Cert')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
     }
 }
