@@ -68,6 +68,24 @@ class Responder
     {
         $pathToResponse = tempnam($this->tempDir, 'php-digidoc');
 
+        $process = $this->createProcess($request, $pathToResponse);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new OcspRequestException('OCSP Verification failed: ' . $process->getErrorOutput());
+        }
+
+        return new Response(file_get_contents($pathToResponse));
+    }
+
+    /**
+     * @param Request $request
+     * @param string  $pathToResponse
+     *
+     * @return Process
+     */
+    private function createProcess(Request $request, $pathToResponse)
+    {
         $commandLine = sprintf(
             'openssl ocsp -issuer %s -cert %s -url %s -VAfile %s -respout %s',
             escapeshellarg($request->getPathToIssuerCert()),
@@ -79,12 +97,7 @@ class Responder
 
         $process = $this->process;
         $process->setCommandLine($commandLine);
-        $process->run();
 
-        if (!$process->isSuccessful()) {
-            throw new OcspRequestException('OCSP Verification failed: ' . $process->getErrorOutput());
-        }
-
-        return new Response(file_get_contents($pathToResponse));
+        return $process;
     }
 }
