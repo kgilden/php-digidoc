@@ -87,7 +87,10 @@ class CertTest extends \PHPUnit_Framework_TestCase
 
     private function getCertData()
     {
-        return file_get_contents(__DIR__ . '/../fixtures/39104040377.cer');
+        return sprintf(
+            "-----BEGIN CERTIFICATE-----\n%s-----END CERTIFICATE-----\n",
+            chunk_split(base64_encode($this->getCertInDer()), 64, "\n")
+        );
     }
 
     private function getCertInDer()
