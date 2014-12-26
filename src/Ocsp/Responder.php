@@ -13,6 +13,7 @@ namespace KG\DigiDoc\Ocsp;
 
 use KG\DigiDoc\Exception\FileNotFoundException;
 use KG\DigiDoc\Exception\OcspRequestException;
+use KG\DigiDoc\X509\Cert;
 use Symfony\Component\Process\Process;
 
 /**
@@ -66,8 +67,13 @@ class Responder
      */
     public function handle(Request $request)
     {
-        // @todo what about response verification?
-        return $this->makeRequest($request);
+        $response = $this->makeRequest($request);
+
+        if (!$response->isSignedBy(new Cert(file_get_contents($this->pathToCert)))) {
+            throw new \RuntimeException('The signature does not match.');
+        }
+
+        return $response;
     }
 
     /**

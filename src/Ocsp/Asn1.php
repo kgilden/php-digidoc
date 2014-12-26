@@ -116,11 +116,16 @@ class Asn1
     public $Version;
 
     /**
+     * @var X509Asn1
+     */
+    private $x509Asn1;
+
+    /**
      * @param X509Asn1|null $x509Asn1
      */
     public function __construct(X509Asn1 $x509Asn1 = null)
     {
-        $x509Asn1 = $x509Asn1 ?: new X509Asn1();
+        $this->x509Asn1 = $x509Asn1 ?: $x509Asn1 = new X509Asn1();
 
         $this->OCSPResponseStatus = array(
             'type' => BaseAsn1::TYPE_ENUMERATED,
@@ -281,5 +286,13 @@ class Asn1
                 ),
             ),
         );
+    }
+
+    /**
+     * @return X509Asn1
+     */
+    public function getX509Asn1()
+    {
+        return $this->x509Asn1;
     }
 }

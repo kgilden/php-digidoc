@@ -63,9 +63,14 @@ class Asn1
      */
     public $Name;
 
+    /**
+     * @var BaseAsn1
+     */
+    private $baseAsn1;
+
     public function __construct()
     {
-        $baseAsn1 = new BaseAsn1();
+        $this->baseAsn1 = $baseAsn1 = new BaseAsn1();
 
         $TBSCertificate = $baseAsn1->Certificate['children']['tbsCertificate'];
         $this->AlgorithmIdentifier = $TBSCertificate['children']['signature'];
@@ -74,5 +79,21 @@ class Asn1
         $this->CRLReason = $baseAsn1->CRLReason;
         $this->Extensions = $baseAsn1->Extensions;
         $this->Name = $baseAsn1->Name;
+    }
+
+    /**
+     * @param string $oid
+     *
+     * @return string
+     *
+     * @throws \RuntimeException If the oid is unknown
+     */
+    public function getValueForOid($oid)
+    {
+        if (isset($this->baseAsn1->oids[$oid])) {
+            return $this->baseAsn1->oids[$oid];
+        }
+
+        throw new \RuntimeException(sprintf('Unknown oid "%s"', $oid));
     }
 }

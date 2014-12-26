@@ -11,6 +11,8 @@
 
 namespace KG\DigiDoc\Ocsp;
 
+use KG\DigiDoc\X509\Cert;
+use KG\DigiDoc\X509\Signature;
 use phpseclib\File\ASN1 as Asn1Parser;
 
 /**
@@ -37,6 +39,11 @@ class Response
      * @var array
      */
     private $response;
+
+    /**
+     * @var null|Signature
+     */
+    private $signature;
 
     /**
      * @param string    $content
@@ -81,6 +88,15 @@ class Response
     }
 
     /**
+     * @param Cert $cert
+     *
+     * @return boolean whether this response is signed by private key corresponding to the certificate
+     */
+    public function isSignedBy(Cert $cert) {
+        return $cert->hasSigned($this->getSignature());
+    }
+
+    /**
      * @param string $nonce Nonce as a binary string to compare against
      *
      * @return boolean
@@ -111,17 +127,50 @@ class Response
      */
     private function getNonce()
     {
-        $parser = new Asn1Parser();
+        $response = $this->getResponseMapped();
 
-        $responseBasicDecoded = $parser->decodeBER(base64_decode($this->response));
-        $responseBasicMapped = $parser->asn1map($responseBasicDecoded[0], $this->asn1->BasicOCSPResponse);
-
-        foreach ($responseBasicMapped['tbsResponseData']['responseExtensions'] as $extension) {
+        foreach ($response['tbsResponseData']['responseExtensions'] as $extension) {
             if (Asn1::OID_OCSP_NONCE === $extension['extnId']) {
                 return base64_decode($extension['extnValue']);
             }
         }
 
         throw new \RuntimeExcetpion('The response does not contain a nonce.');
+    }
+
+    private function getSignature()
+    {
+        if ($this->signature) {
+            return $this->signature;
+        }
+
+        $response = $this->getResponseMapped();
+        $parser = new Asn1Parser();
+
+        // @todo the signature is 0-padded, are there any exceptions?
+        $dataToSign = $parser->encodeDER($response['tbsResponseData'], $this->asn1->ResponseData);
+        $dataSigned = substr(base64_decode($response['signature']), 1);
+
+        $algorithm = $this
+            ->asn1
+            ->getX509Asn1()
+            ->getValueForOid($response['signatureAlgorithm']['algorithm'])
+        ;
+
+        return $this->signature = new Signature($dataToSign, $dataSigned, $algorithm);
+
+    }
+
+    /**
+     * Decodes and maps the BasicOCSPResponse part of the response.
+     *
+     * @return array
+     */
+    private function getResponseMapped()
+    {
+        $parser = new Asn1Parser();
+
+        $responseBasicDecoded = $parser->decodeBER(base64_decode($this->response));
+        return $parser->asn1map($responseBasicDecoded[0], $this->asn1->BasicOCSPResponse);
     }
 }
