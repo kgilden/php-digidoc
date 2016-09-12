@@ -284,4 +284,12 @@ class Api implements ApiInterface
             throw ApiException::createNotMerged($envelope);
         }
     }
+
+    /**
+     * @param \SoapClient $client
+     */
+    public function setClient(\SoapClient $client)
+    {
+        $this->client = $client;
+    }
 }
