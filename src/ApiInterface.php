@@ -108,4 +108,14 @@ interface ApiInterface
      * @param Envelope $envelope
      */
     public function merge(Envelope $envelope);
+
+    /**
+     * Sets the Client.
+     * Api can not be stored in a session without SoapClient failing. So in
+     * order for storing the Api along with other objects in session, we
+     * need to replace the client after retrieving the objects.
+     *
+     * @param \SoapClient $client
+     */
+    public function setClient(\SoapClient $client);
 }

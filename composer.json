@@ -18,7 +18,7 @@
         "ext-zip": "*",
         "doctrine/collections": "~1.0",
         "symfony/process": "~2.0",
-        "phpseclib/phpseclib": "dev-php5"
+        "phpseclib/phpseclib": "*"
     },
     "require-dev": {
         "wsdl2phpgenerator/wsdl2phpgenerator": "~2.3",
